@@ -1,7 +1,7 @@
 // client/src/pages/Login.js
 import React, { useState } from 'react';
 import { useHistory } from 'react-router-dom';
-import { login } from '../services/api';
+import { login, setAuthToken } from '../services/api';
 
 function Login() {
   const [email, setEmail] = useState('');
@@ -14,6 +14,7 @@ function Login() {
     try {
       const data = await login({ email, password });
       localStorage.setItem('token', data.token);
+      setAuthToken(data.token);
       history.push('/');
     } catch (err) {
       setError('Invalid email or password');
