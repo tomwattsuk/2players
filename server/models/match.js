@@ -1,4 +1,3 @@
-// server/models/Match.js
 const mongoose = require('mongoose');
 
 const MatchSchema = new mongoose.Schema({
@@ -15,19 +14,11 @@ const MatchSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
   },
-  status: {
-    type: String,
-    enum: ['waiting', 'in_progress', 'completed'],
-    default: 'waiting',
-  },
-  createdAt: {
+  startTime: {
     type: Date,
     default: Date.now,
   },
-  updatedAt: {
-    type: Date,
-    default: Date.now,
-  },
+  endTime: Date,
 });
 
 module.exports = mongoose.model('Match', MatchSchema);

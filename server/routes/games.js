@@ -1,4 +1,3 @@
-// server/routes/games.js
 const express = require('express');
 const router = express.Router();
 const Game = require('../models/Game');
@@ -10,20 +9,19 @@ router.get('/', async (req, res) => {
     res.json(games);
   } catch (err) {
     console.error(err.message);
-    res.status(500).send('Server error');
+    res.status(500).send('Server Error');
   }
 });
 
 // Add a new game
 router.post('/', async (req, res) => {
   try {
-    const { name, description, rules, maxPlayers } = req.body;
-    const newGame = new Game({ name, description, rules, maxPlayers });
+    const newGame = new Game(req.body);
     const game = await newGame.save();
     res.json(game);
   } catch (err) {
     console.error(err.message);
-    res.status(500).send('Server error');
+    res.status(500).send('Server Error');
   }
 });
 

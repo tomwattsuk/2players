@@ -1,4 +1,3 @@
-// server/models/Game.js
 const mongoose = require('mongoose');
 
 const GameSchema = new mongoose.Schema({
@@ -7,21 +6,10 @@ const GameSchema = new mongoose.Schema({
     required: true,
     unique: true,
   },
-  description: {
-    type: String,
-    required: true,
-  },
-  rules: {
-    type: String,
-    required: true,
-  },
+  description: String,
   maxPlayers: {
     type: Number,
     default: 2,
-  },
-  createdAt: {
-    type: Date,
-    default: Date.now,
   },
 });
 

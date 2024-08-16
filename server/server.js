@@ -24,4 +24,4 @@ app.use('/api/users', require('./routes/users'));
 app.use('/api/games', require('./routes/games'));
 app.use('/api/matches', require('./routes/matches'));
 
-app.listen(PORT, () => console.log(`2players server running on port ${PORT}`));
+app.listen(PORT, () => console.log(`Server running on port ${PORT}`));

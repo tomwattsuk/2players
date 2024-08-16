@@ -1,4 +1,3 @@
-// server/models/User.js
 const mongoose = require('mongoose');
 
 const UserSchema = new mongoose.Schema({
@@ -15,26 +14,6 @@ const UserSchema = new mongoose.Schema({
   password: {
     type: String,
     required: true,
-  },
-  profilePicture: {
-    type: String,
-    default: '',
-  },
-  friends: [{
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'User'
-  }],
-  gamesPlayed: {
-    type: Number,
-    default: 0,
-  },
-  wins: {
-    type: Number,
-    default: 0,
-  },
-  losses: {
-    type: Number,
-    default: 0,
   },
   createdAt: {
     type: Date,
