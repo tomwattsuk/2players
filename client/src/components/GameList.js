@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { getGames } from '../services/api';
 
-function GameList() {
+function GameList({ onSelectGame }) {
   const [games, setGames] = useState([]);
 
   useEffect(() => {
@@ -22,7 +22,10 @@ function GameList() {
       <h2>Available Games</h2>
       <ul>
         {games.map(game => (
-          <li key={game._id}>{game.name}</li>
+          <li key={game._id}>
+            {game.name}
+            <button onClick={() => onSelectGame(game)}>Play</button>
+          </li>
         ))}
       </ul>
     </div>
