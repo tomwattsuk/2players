@@ -1,16 +1,15 @@
-// client/src/components/Header.js
 import React from 'react';
-import { Link, useHistory } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { setAuthToken } from '../services/api';
 
 function Header() {
-  const history = useHistory();
+  const navigate = useNavigate();
   const isAuthenticated = !!localStorage.getItem('token');
 
   const handleLogout = () => {
     localStorage.removeItem('token');
     setAuthToken(null);
-    history.push('/login');
+    navigate('/login');
   };
 
   return (

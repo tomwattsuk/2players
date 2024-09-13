@@ -4,6 +4,11 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 
+
+// jWT
+
+jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '1h' });
+
 // Register
 router.post('/register', async (req, res) => {
   try {

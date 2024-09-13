@@ -1,6 +1,5 @@
-// client/src/pages/Register.js
 import React, { useState } from 'react';
-import { useHistory } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { register, setAuthToken } from '../services/api';
 
 function Register() {
@@ -8,7 +7,7 @@ function Register() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
-  const history = useHistory();
+  const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -16,7 +15,7 @@ function Register() {
       const data = await register({ username, email, password });
       localStorage.setItem('token', data.token);
       setAuthToken(data.token);
-      history.push('/');
+      navigate('/');
     } catch (err) {
       setError('Registration failed. Please try again.');
     }

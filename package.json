@@ -2,8 +2,12 @@
     "name": "2players",
     "version": "1.0.0",
     "scripts": {
-      "start": "cd server && npm start",
-      "build": "cd client && npm run build",
-      "install": "cd server && npm install && cd ../client && npm install"
+        "start": "cd client && npm start",
+        "build": "cd client && npm run build",
+        "test": "cd client && npm test && cd ../server && npm test"
+    },
+    "dependencies": {
+        "dotenv": "^16.4.5",
+        "mongodb": "^6.8.0"
     }
-  }
+}
