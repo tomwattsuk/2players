@@ -27,3 +27,8 @@ Before you begin, ensure you have met the following requirements:
 ## Installation
 
 1. Clone the repository:
+
+2. Install server dependencies:
+
+3. Install client dependencies:
+
