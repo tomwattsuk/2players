@@ -18,11 +18,7 @@ mongoose.connect(process.env.MONGODB_URI, {
 .catch((err) => console.log(err));
 
 // Routes
-app.use('/api/users', require('../routes/users'));
-app.use('/api/games', require('../routes/games'));
-app.use('/api/matches', require('../routes/matches'));
+// Add your routes here
 
-// Handle options requests
-app.options('*', cors());
-
+// For Vercel serverless functions
 module.exports = app;
