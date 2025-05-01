@@ -1,44 +1,85 @@
+
 import React from 'react';
-import GameArea from './components/GameArea';
-import Stats from './components/Stats';
-import LoginButton from './components/LoginButton';
 import { useWebSocket } from './hooks/useWebSocket';
 import { useAuthStore } from './stores/useAuthStore';
+import GameArea from './components/GameArea';
+import Navbar from './components/Navbar';
+import { Users, Gamepad2, MessageSquare, Globe } from 'lucide-react';
 
 const App: React.FC = () => {
-  const { onlinePlayers, isConnected, opponentCountry, inGame } = useWebSocket();
+  const { onlinePlayers, isConnected } = useWebSocket();
   const { user, loading } = useAuthStore();
+
+  const features = [
+    {
+      icon: <Gamepad2 className="w-8 h-8 text-pink-500" />,
+      title: "Real-time Multiplayer",
+      description: "Challenge players worldwide in classic games like Battleships, Tic Tac Toe, and Checkers"
+    },
+    {
+      icon: <Users className="w-8 h-8 text-violet-500" />,
+      title: "Make New Friends",
+      description: "Connect with players, send friend requests, and build your gaming circle"
+    },
+    {
+      icon: <MessageSquare className="w-8 h-8 text-blue-500" />,
+      title: "Live Chat",
+      description: "Chat with your opponents during games and make new connections"
+    },
+    {
+      icon: <Globe className="w-8 h-8 text-green-500" />,
+      title: "Global Community",
+      description: "Join players from around the world in friendly competition"
+    }
+  ];
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-violet-900 via-slate-900 to-black">
-      <header className="w-full bg-white/5 backdrop-blur-lg border-b border-white/10 px-6 py-4">
-        <div className="max-w-7xl mx-auto flex items-center justify-between">
-          <h1 className="text-2xl font-bold bg-gradient-to-r from-pink-500 to-violet-500 text-transparent bg-clip-text">
-            2Players.io
-          </h1>
-          
-          <div className="flex items-center gap-6">
-            <Stats 
-              onlinePlayers={onlinePlayers} 
-              opponentCountry={opponentCountry}
-              inGame={inGame}
-            />
-            <LoginButton />
-          </div>
-        </div>
-      </header>
+      <Navbar />
       
-      <main className="max-w-7xl mx-auto p-8">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {!user && !loading ? (
-          <div className="flex flex-col items-center justify-center py-20 text-center">
-            <h2 className="text-3xl font-bold mb-4">Welcome to 2Players.io</h2>
-            <p className="text-gray-400 mb-8 max-w-md">
-              Sign in to start playing multiplayer games with players from around the world.
-            </p>
-            <LoginButton />
+          <div className="py-12 sm:py-20">
+            <div className="text-center mb-16">
+              <h1 className="text-4xl sm:text-6xl font-bold mb-6 bg-gradient-to-r from-pink-500 via-violet-500 to-blue-500 text-transparent bg-clip-text">
+                Play Games. Meet People.
+              </h1>
+              <p className="text-xl text-gray-300 mb-8 max-w-2xl mx-auto">
+                Challenge players worldwide in real-time multiplayer games and make new friends along the way.
+              </p>
+              {isConnected && onlinePlayers > 0 && (
+                <p className="text-green-400 text-lg animate-pulse">
+                  {onlinePlayers} Players Online Now
+                </p>
+              )}
+            </div>
+
+            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8 mb-16">
+              {features.map((feature, index) => (
+                <div 
+                  key={index}
+                  className="bg-white/5 backdrop-blur-lg rounded-xl p-6 hover:bg-white/10 transition"
+                >
+                  <div className="mb-4">{feature.icon}</div>
+                  <h3 className="text-xl font-semibold text-white mb-2">{feature.title}</h3>
+                  <p className="text-gray-400">{feature.description}</p>
+                </div>
+              ))}
+            </div>
+
+            <div className="text-center">
+              <button 
+                onClick={() => document.getElementById('auth-modal')?.click()}
+                className="px-8 py-4 bg-gradient-to-r from-pink-500 to-violet-500 text-white rounded-lg text-lg font-semibold hover:opacity-90 transition"
+              >
+                Start Playing Now
+              </button>
+            </div>
           </div>
         ) : (
-          <GameArea />
+          <div className="py-8">
+            <GameArea />
+          </div>
         )}
       </main>
     </div>
