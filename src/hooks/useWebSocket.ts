@@ -5,7 +5,7 @@ const WEBSOCKET_SERVERS = [
   import.meta.env.VITE_WS_URL,
   'wss://2players-io.glitch.me',
   'wss://2players-backup.glitch.me',
-  import.meta.env.DEV ? 'ws://localhost:3000/ws' : null
+  import.meta.env.DEV ? `ws://${window.location.hostname}${window.location.port ? ':' + window.location.port : ''}/ws` : null
 ].filter(Boolean) as string[];
 
 interface WebSocketState {

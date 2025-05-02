@@ -54,7 +54,7 @@ wss.on('connection', (ws) => {
   const clientId = Math.random().toString(36).substring(7);
   connections.set(clientId, ws);
   console.log(`Client connected: ${clientId}`);
-  
+
   // Send initial connection confirmation
   ws.send(JSON.stringify({
     type: 'connection_established',
@@ -82,9 +82,12 @@ wss.on('connection', (ws) => {
   });
 });
 
-// Rest of the server code remains the same...
+// Placeholder for handleMessage and handleDisconnect functions -  These need to be implemented separately.
+function handleMessage(ws, clientId, data) {}
+function handleDisconnect(clientId) {}
 
-const PORT = process.env.PORT || 3000;
-server.listen(PORT, () => {
+
+const PORT = process.env.PORT || 5000;
+server.listen(PORT, '0.0.0.0', () => {
   console.log(`WebSocket server running on port ${PORT}`);
 });
