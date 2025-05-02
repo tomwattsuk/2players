@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
-import { TicTacToe, Checkers, Battleships } from './games';
+import { TicTacToe, Checkers, Battleships, Snake } from './games';
 import { useMultiplayer } from '../hooks/useMultiplayer';
 import { Gamepad2, Loader2, AlertCircle, RefreshCw, Ship, Target, Crown } from 'lucide-react';
 import ChatBox from './ChatBox';
 import GameEndModal from './GameEndModal';
 
-type GameType = 'battleships' | 'tictactoe' | 'checkers' | null;
+type GameType = 'battleships' | 'tictactoe' | 'checkers' | 'snake' | null;
 
 interface GameAreaProps {
   onGameEnd?: () => void;
@@ -16,7 +16,7 @@ export default function GameArea({ onGameEnd = () => {} }: GameAreaProps) {
   const [showEndModal, setShowEndModal] = useState(false);
   const [gameWinner, setGameWinner] = useState<string | null>(null);
   const [opponentDisconnected, setOpponentDisconnected] = useState(false);
-  
+
   const { 
     isHost, 
     gameId, 
@@ -109,6 +109,7 @@ export default function GameArea({ onGameEnd = () => {} }: GameAreaProps) {
         {selectedGame === 'battleships' && <Battleships {...gameProps} />}
         {selectedGame === 'tictactoe' && <TicTacToe {...gameProps} />}
         {selectedGame === 'checkers' && <Checkers {...gameProps} />}
+        {selectedGame === 'snake' && <Snake {...gameProps} />}
         {!isOffline && <ChatBox onSendMessage={sendChat} messages={messages} />}
         <GameEndModal
           show={showEndModal}
@@ -183,6 +184,24 @@ export default function GameArea({ onGameEnd = () => {} }: GameAreaProps) {
           </div>
           <h3 className="text-xl font-bold text-white">Checkers</h3>
           <p className="text-gray-400 text-sm mt-2">Strategic board game</p>
+        </div>
+      </button>
+
+      <button
+        onClick={() => handleGameSelect('snake')}
+        className="p-6 bg-white bg-opacity-5 rounded-xl hover:bg-opacity-10 transition group"
+        role="menuitem"
+        aria-label="Play Snake"
+      >
+        <div className="flex flex-col items-center">
+          <div className="w-16 h-16 bg-gradient-to-br from-green-500 to-emerald-500 rounded-lg flex items-center justify-center mb-4 group-hover:scale-110 transition">
+            <svg viewBox="0 0 24 24" className="w-8 h-8 text-white" fill="none" stroke="currentColor">
+              <path d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" strokeWidth={2} />
+              <path d="M9 12h6m-6 0l-3-3m3 3l-3 3" strokeWidth={2} />
+            </svg>
+          </div>
+          <h3 className="text-xl font-bold text-white">Snake</h3>
+          <p className="text-gray-400 text-sm mt-2">Classic arcade game</p>
         </div>
       </button>
     </div>
