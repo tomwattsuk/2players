@@ -9,14 +9,13 @@ interface Props {
   isOffline?: boolean;
 }
 
-const CANVAS_WIDTH = 800;
-const CANVAS_HEIGHT = 400;
-const PADDLE_HEIGHT = 10;
-const PADDLE_WIDTH = 100;
-const BALL_SIZE = 10;
-const BALL_SPEED = 5;
-
 export default function CoopPong({ onGameEnd, isHost, sendGameState, gameId, isOffline }: Props) {
+  const CANVAS_WIDTH = 800;
+  const CANVAS_HEIGHT = 400;
+  const PADDLE_HEIGHT = 10;
+  const PADDLE_WIDTH = 100;
+  const BALL_SIZE = 10;
+  const BALL_SPEED = 5;
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [paddle1Pos, setPaddle1Pos] = useState(CANVAS_WIDTH / 2);
   const [paddle2Pos, setPaddle2Pos] = useState(CANVAS_WIDTH / 2);
