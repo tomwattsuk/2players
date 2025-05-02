@@ -2,11 +2,13 @@
 import React from 'react';
 import { useAuthStore } from '../stores/useAuthStore';
 import GameArea from './GameArea';
+import { Users, MessageSquare, Trophy, Crown } from 'lucide-react';
 
 const PlayNow: React.FC = () => {
   const { user } = useAuthStore();
+  const isGuest = window.location.hash === '#guest';
 
-  if (!user) {
+  if (!user && !isGuest) {
     return (
       <div className="min-h-[80vh] flex items-center justify-center">
         <div className="max-w-2xl mx-auto p-8 text-center">
@@ -50,9 +52,65 @@ const PlayNow: React.FC = () => {
   return (
     <div className="min-h-screen py-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <h1 className="text-4xl font-bold text-center mb-8 bg-gradient-to-r from-pink-500 via-violet-500 to-blue-500 text-transparent bg-clip-text">
-          Choose Your Game
-        </h1>
+        {isGuest && (
+          <div className="mb-8 p-4 bg-white/5 backdrop-blur-lg rounded-lg">
+            <p className="text-amber-400 text-center">
+              Playing as guest - Some features are limited. 
+              <button 
+                onClick={() => document.getElementById('auth-modal')?.click()}
+                className="text-white underline ml-2 hover:text-pink-500"
+              >
+                Sign up now
+              </button>
+            </p>
+          </div>
+        )}
+
+        <div className="text-center mb-12">
+          <h1 className="text-4xl font-bold mb-4 bg-gradient-to-r from-pink-500 via-violet-500 to-blue-500 text-transparent bg-clip-text">
+            Choose Your Game
+          </h1>
+          <p className="text-gray-400">
+            Challenge players and have fun!
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
+          {!isGuest && (
+            <div className="bg-white/5 backdrop-blur-lg rounded-xl p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-xl font-semibold text-white">Your Stats</h2>
+                <Trophy className="w-6 h-6 text-amber-400" />
+              </div>
+              <div className="space-y-2 text-gray-300">
+                <p>Games Played: 0</p>
+                <p>Wins: 0</p>
+                <p>Win Rate: 0%</p>
+              </div>
+            </div>
+          )}
+
+          {!isGuest && (
+            <div className="bg-white/5 backdrop-blur-lg rounded-xl p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-xl font-semibold text-white">Friends Online</h2>
+                <Users className="w-6 h-6 text-green-400" />
+              </div>
+              <p className="text-gray-400">No friends online</p>
+            </div>
+          )}
+
+          {!isGuest && (
+            <div className="bg-white/5 backdrop-blur-lg rounded-xl p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-xl font-semibold text-white">Recent Activity</h2>
+                <MessageSquare className="w-6 h-6 text-blue-400" />
+              </div>
+              <p className="text-gray-400">No recent activity</p>
+            </div>
+          )}
+        </div>
+
         <GameArea />
       </div>
     </div>
