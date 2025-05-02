@@ -1,12 +1,25 @@
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuthStore } from '../stores/useAuthStore';
 import GameArea from './GameArea';
 import { Users, MessageSquare, Trophy, Crown } from 'lucide-react';
 
 const PlayNow: React.FC = () => {
   const { user } = useAuthStore();
-  const isGuest = window.location.hash === '#guest';
+  const [isGuest, setIsGuest] = useState(window.location.hash === '#guest');
+
+  useEffect(() => {
+    const handleHashChange = () => {
+      setIsGuest(window.location.hash === '#guest');
+    };
+    window.addEventListener('hashchange', handleHashChange);
+    return () => window.removeEventListener('hashchange', handleHashChange);
+  }, []);
+
+  const handleGuestContinue = () => {
+    window.location.hash = 'guest';
+    setIsGuest(true);
+  };
 
   if (!user && !isGuest) {
     return (
@@ -35,7 +48,7 @@ const PlayNow: React.FC = () => {
           <div className="text-center">
             <p className="text-gray-400 mb-4">Want to try it first?</p>
             <button 
-              onClick={() => window.location.hash = '#guest'}
+              onClick={handleGuestContinue}
               className="px-6 py-3 bg-white/10 text-white rounded-lg font-semibold hover:bg-white/20 transition"
             >
               Continue as Guest
