@@ -5,7 +5,7 @@ import { Gamepad2, Loader2, AlertCircle, RefreshCw, Ship, Target, Crown } from '
 import ChatBox from './ChatBox';
 import GameEndModal from './GameEndModal';
 
-type GameType = 'battleships' | 'tictactoe' | 'checkers' | 'snake' | null;
+type GameType = 'battleships' | 'tictactoe' | 'checkers' | 'snake' | 'cooppong' | null;
 
 interface GameAreaProps {
   onGameEnd?: () => void;
@@ -110,6 +110,7 @@ export default function GameArea({ onGameEnd = () => {} }: GameAreaProps) {
         {selectedGame === 'tictactoe' && <TicTacToe {...gameProps} />}
         {selectedGame === 'checkers' && <Checkers {...gameProps} />}
         {selectedGame === 'snake' && <Snake {...gameProps} />}
+        {selectedGame === 'cooppong' && <CoopPong {...gameProps} />}
         {!isOffline && <ChatBox onSendMessage={sendChat} messages={messages} />}
         <GameEndModal
           show={showEndModal}
@@ -184,6 +185,24 @@ export default function GameArea({ onGameEnd = () => {} }: GameAreaProps) {
           </div>
           <h3 className="text-xl font-bold text-white">Checkers</h3>
           <p className="text-gray-400 text-sm mt-2">Strategic board game</p>
+        </div>
+      </button>
+
+      <button
+        onClick={() => handleGameSelect('cooppong')}
+        className="p-6 bg-white bg-opacity-5 rounded-xl hover:bg-opacity-10 transition group"
+        role="menuitem"
+        aria-label="Play Cooperative Pong"
+      >
+        <div className="flex flex-col items-center">
+          <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-indigo-500 rounded-lg flex items-center justify-center mb-4 group-hover:scale-110 transition">
+            <svg viewBox="0 0 24 24" className="w-8 h-8 text-white" fill="none" stroke="currentColor">
+              <circle cx="12" cy="12" r="3" strokeWidth={2} />
+              <path d="M3 12h6M15 12h6" strokeWidth={2} />
+            </svg>
+          </div>
+          <h3 className="text-xl font-bold text-white">Co-op Pong</h3>
+          <p className="text-gray-400 text-sm mt-2">Work together to score</p>
         </div>
       </button>
 
