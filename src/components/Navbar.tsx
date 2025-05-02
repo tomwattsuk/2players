@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Gamepad, Users, MessageSquare, Settings } from 'lucide-react';
+import { Gamepad, Users, MessageSquare } from 'lucide-react';
 import { useAuthStore } from '../stores/useAuthStore';
 
 const Navbar = () => {
@@ -31,10 +31,6 @@ const Navbar = () => {
                 </button>
               </>
             )}
-            <button className="nav-button">
-              <Settings size={20} />
-              <span>Settings</span>
-            </button>
             <Link 
               to="/play"
               className="ml-4 px-4 py-2 bg-gradient-to-r from-pink-500 to-violet-500 text-white rounded-lg hover:opacity-90 transition"
