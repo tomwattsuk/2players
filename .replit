@@ -16,7 +16,11 @@ mode = "parallel"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "cd server && node index.js & cd .. && npm run dev"
+args = "npm install && npm run dev"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "cd server && npm install && node index.js"
 
 [[ports]]
 localPort = 3000
