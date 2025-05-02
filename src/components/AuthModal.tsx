@@ -11,6 +11,8 @@ export default function AuthModal({ onClose }: AuthModalProps) {
   const [isSignUp, setIsSignUp] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState(''); // Added confirm password state
+  const [username, setUsername] = useState(''); // Added username state
   const { 
     signInWithEmail, 
     signUp, 
@@ -32,7 +34,16 @@ export default function AuthModal({ onClose }: AuthModalProps) {
     e.preventDefault();
     try {
       if (isSignUp) {
-        await signUp(email, password);
+        // Basic validation (improve as needed)
+        if (username.length < 6 || !/^[a-zA-Z0-9_]+$/.test(username)) {
+          alert('Username must be at least 6 alphanumeric characters (no spaces, _ allowed).');
+          return;
+        }
+        if (password !== confirmPassword) {
+          alert('Passwords do not match.');
+          return;
+        }
+        await signUp(email, password, username); // Pass username to signUp
       } else {
         await signInWithEmail(email, password);
       }
@@ -83,6 +94,21 @@ export default function AuthModal({ onClose }: AuthModalProps) {
         )}
 
         <form onSubmit={handleSubmit} className="space-y-4">
+          {isSignUp && (
+            <div>
+              <label className="block text-sm font-medium text-gray-300 mb-1">
+                Username
+              </label>
+              <input
+                type="text"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-pink-500"
+                placeholder="Enter your username"
+                required
+              />
+            </div>
+          )}
           <div>
             <label className="block text-sm font-medium text-gray-300 mb-1">
               Email
@@ -116,6 +142,25 @@ export default function AuthModal({ onClose }: AuthModalProps) {
               />
             </div>
           </div>
+
+          {isSignUp && (
+            <div>
+              <label className="block text-sm font-medium text-gray-300 mb-1">
+                Confirm Password
+              </label>
+              <div className="relative">
+                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                <input
+                  type="password"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2 pl-10 focus:outline-none focus:ring-2 focus:ring-pink-500"
+                  placeholder="Confirm your password"
+                  required
+                />
+              </div>
+            </div>
+          )}
 
           <button
             type="submit"
