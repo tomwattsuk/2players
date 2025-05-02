@@ -1,7 +1,11 @@
+
 import React from 'react';
 import { Gamepad, Users, MessageSquare, Settings } from 'lucide-react';
+import { useAuthStore } from '../stores/useAuthStore';
 
 const Navbar = () => {
+  const { user } = useAuthStore();
+
   return (
     <nav className="bg-white bg-opacity-10 backdrop-blur-lg border-b border-white/10">
       <div className="container mx-auto px-4">
@@ -14,14 +18,18 @@ const Navbar = () => {
           </div>
 
           <div className="flex items-center gap-6">
-            <button className="nav-button">
-              <Users size={20} />
-              <span>Friends</span>
-            </button>
-            <button className="nav-button">
-              <MessageSquare size={20} />
-              <span>Messages</span>
-            </button>
+            {user && (
+              <>
+                <button className="nav-button">
+                  <Users size={20} />
+                  <span>Friends</span>
+                </button>
+                <button className="nav-button">
+                  <MessageSquare size={20} />
+                  <span>Messages</span>
+                </button>
+              </>
+            )}
             <button className="nav-button">
               <Settings size={20} />
               <span>Settings</span>
