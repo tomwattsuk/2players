@@ -30,7 +30,7 @@ export function useWebSocket() {
   const reconnectTimeoutRef = useRef<number>();
   const reconnectAttempts = useRef(0);
   const serverIndex = useRef(0);
-  const maxReconnectAttempts = 2;
+  const maxReconnectAttempts = 5; // Increased max attempts
   const messageQueueRef = useRef<WebSocketMessage[]>([]);
   const heartbeatIntervalRef = useRef<number>();
 
@@ -81,7 +81,7 @@ export function useWebSocket() {
     try {
       const currentServer = state.currentServer;
       console.log(`Connecting to ${currentServer}...`);
-      
+
       ws.current = new WebSocket(currentServer);
       ws.current.binaryType = 'arraybuffer';
 
@@ -115,7 +115,7 @@ export function useWebSocket() {
 
         if (reconnectAttempts.current < maxReconnectAttempts) {
           reconnectAttempts.current++;
-          const delay = Math.min(1000 * Math.pow(2, reconnectAttempts.current), 5000);
+          const delay = Math.min(1000 * Math.pow(2, reconnectAttempts.current), 10000); // Exponential backoff with 10s max
           reconnectTimeoutRef.current = window.setTimeout(connect, delay);
         } else {
           const nextServer = tryNextServer();
