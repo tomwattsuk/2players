@@ -1,12 +1,14 @@
+
 const WebSocket = require('ws');
 const express = require('express');
 const http = require('http');
+const path = require('path');
 
 const app = express();
 const server = http.createServer(app);
 const wss = new WebSocket.Server({ 
   server,
-  path: '/ws' // Add explicit WebSocket path
+  path: '/ws'
 });
 
 // Store active games and connections
@@ -22,34 +24,15 @@ app.use((req, res, next) => {
   next();
 });
 
-// Root endpoint for health check
-app.get('/', (req, res) => {
-  res.send('WebSocket Game Server - Online');
+// Serve static files from the dist directory
+app.use(express.static(path.join(__dirname, '../dist')));
+
+// Serve index.html for all routes to support client-side routing
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, '../dist/index.html'));
 });
 
-// Health check endpoint
-app.get('/health', (req, res) => {
-  res.json({ 
-    status: 'ok', 
-    connections: wss.clients.size,
-    games: games.size,
-    waiting: waitingPlayers.size
-  });
-});
-
-// Broadcast online count
-function broadcastOnlineCount() {
-  const count = wss.clients.size;
-  wss.clients.forEach(client => {
-    if (client.readyState === WebSocket.OPEN) {
-      client.send(JSON.stringify({
-        type: 'online_count',
-        data: { count }
-      }));
-    }
-  });
-}
-
+// WebSocket connection handling
 wss.on('connection', (ws) => {
   const clientId = Math.random().toString(36).substring(7);
   connections.set(clientId, ws);
@@ -82,12 +65,37 @@ wss.on('connection', (ws) => {
   });
 });
 
-// Placeholder for handleMessage and handleDisconnect functions -  These need to be implemented separately.
-function handleMessage(ws, clientId, data) {}
-function handleDisconnect(clientId) {}
+// Broadcast online count
+function broadcastOnlineCount() {
+  const count = wss.clients.size;
+  wss.clients.forEach(client => {
+    if (client.readyState === WebSocket.OPEN) {
+      client.send(JSON.stringify({
+        type: 'online_count',
+        data: { count }
+      }));
+    }
+  });
+}
 
+function handleMessage(ws, clientId, data) {
+  // Handle different message types
+  switch (data.type) {
+    case 'ping':
+      ws.send(JSON.stringify({ type: 'pong' }));
+      break;
+    // Add other message handlers as needed
+  }
+}
+
+function handleDisconnect(clientId) {
+  connections.delete(clientId);
+  waitingPlayers.delete(clientId);
+  console.log(`Client disconnected: ${clientId}`);
+  broadcastOnlineCount();
+}
 
 const PORT = process.env.PORT || 5000;
 server.listen(PORT, '0.0.0.0', () => {
-  console.log(`WebSocket server running on port ${PORT}`);
+  console.log(`Server running on port ${PORT}`);
 });
