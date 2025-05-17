@@ -45,15 +45,40 @@ const PlayNow: React.FC = () => {
             </button>
           </div>
 
-          <div className="text-center">
-            <p className="text-gray-400 mb-4">Want to try it first?</p>
+          <div className="flex flex-col items-center gap-4">
+            <button 
+              onClick={() => document.getElementById('auth-modal')?.click()}
+              className="w-full px-6 py-3 bg-white/10 text-white rounded-lg font-semibold hover:bg-white/20 transition"
+            >
+              Log In
+            </button>
+            <button 
+              onClick={() => {
+                const authModal = document.getElementById('auth-modal');
+                if (authModal) {
+                  (authModal as any).dataset.signup = 'true';
+                  authModal.click();
+                }
+              }}
+              className="w-full px-6 py-3 bg-gradient-to-r from-pink-500 to-violet-500 text-white rounded-lg font-semibold hover:opacity-90 transition"
+            >
+              Sign Up
+            </button>
+            <div className="relative w-full my-2">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-white/10"></div>
+              </div>
+              <div className="relative flex justify-center">
+                <span className="px-2 bg-slate-900 text-gray-400 text-sm">or</span>
+              </div>
+            </div>
             <button 
               onClick={handleGuestContinue}
-              className="px-6 py-3 bg-white/10 text-white rounded-lg font-semibold hover:bg-white/20 transition"
+              className="w-full px-6 py-3 bg-white/5 text-gray-300 rounded-lg font-semibold hover:bg-white/10 transition"
             >
               Continue as Guest
             </button>
-            <p className="text-sm text-gray-500 mt-3">
+            <p className="text-sm text-gray-500 mt-1">
               Note: Guest players can only play with other guests
             </p>
           </div>
