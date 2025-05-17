@@ -75,7 +75,12 @@ const App: React.FC = () => {
 
                     <div className="text-center">
                       <button
-                        onClick={() => document.getElementById('auth-modal')?.click()}
+                        onClick={() => {
+                          const modal = document.getElementById('auth-modal');
+                          if (modal) {
+                            (modal as HTMLDialogElement).showModal();
+                          }
+                        }}
                         className="px-8 py-4 bg-gradient-to-r from-pink-500 to-violet-500 text-white rounded-lg text-lg font-semibold hover:opacity-90 transition"
                       >
                         Start Playing Now
