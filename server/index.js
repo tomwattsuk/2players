@@ -11,6 +11,28 @@ const wss = new WebSocket.Server({
   path: '/ws'
 });
 
+const userController = require('./controllers/userController');
+
+// User registration endpoint
+app.post('/api/users', async (req, res) => {
+  try {
+    const result = await userController.createUser(req.body);
+    res.json(result);
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+});
+
+// User update endpoint
+app.put('/api/users/:uid', async (req, res) => {
+  try {
+    const result = await userController.updateUser(req.params.uid, req.body);
+    res.json(result);
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+});
+
 // Store active games and connections
 const games = new Map();
 const connections = new Map();
