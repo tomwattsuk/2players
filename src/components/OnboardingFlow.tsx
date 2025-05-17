@@ -161,6 +161,5 @@ export default function OnboardingFlow() {
         </div>
       </div>
     </div>
-  </div>
-);
+  );
 }
