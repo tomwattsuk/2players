@@ -41,7 +41,7 @@ const PlayNow: React.FC = () => {
               onClick={() => document.getElementById('auth-modal')?.click()}
               className="px-6 py-3 bg-gradient-to-r from-pink-500 to-violet-500 text-white rounded-lg font-semibold hover:opacity-90 transition"
             >
-              Log in / Sign up
+              Start Playing Now
             </button>
           </div>
 
