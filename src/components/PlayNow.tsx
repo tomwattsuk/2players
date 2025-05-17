@@ -37,15 +37,9 @@ const PlayNow: React.FC = () => {
               <li>🏆 Track your stats and achievements</li>
               <li>🎮 Play with the entire community</li>
             </ul>
-            <button 
-              onClick={() => document.getElementById('auth-modal')?.click()}
-              className="px-6 py-3 bg-gradient-to-r from-pink-500 to-violet-500 text-white rounded-lg font-semibold hover:opacity-90 transition"
-            >
-              Start Playing Now
-            </button>
-          </div>
+            </div>
 
-          <div className="flex flex-col items-center gap-4">
+          <div className="flex flex-col items-center gap-4 mt-8">
             <button 
               onClick={() => document.getElementById('auth-modal')?.click()}
               className="w-full px-6 py-3 bg-white/10 text-white rounded-lg font-semibold hover:bg-white/20 transition"
