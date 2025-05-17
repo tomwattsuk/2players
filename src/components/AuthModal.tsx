@@ -5,10 +5,11 @@ import { useAuthStore } from '../stores/useAuthStore';
 
 interface AuthModalProps {
   onClose: () => void;
+  initialSignUp?: boolean;
 }
 
-export default function AuthModal({ onClose }: AuthModalProps) {
-  const [isSignUp, setIsSignUp] = useState(false);
+export default function AuthModal({ onClose, initialSignUp = false }: AuthModalProps) {
+  const [isSignUp, setIsSignUp] = useState(initialSignUp);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState(''); // Added confirm password state
