@@ -13,10 +13,9 @@ export function GameLobby({ onGameStart }: GameLobbyProps) {
   useEffect(() => {
     if (isConnected && !isSearching) {
       setIsSearching(true);
-      const gameId = createGame();
-      onGameStart(gameId);
+      createGame('tictactoe'); // Default to TicTacToe
     }
-  }, [isConnected, isSearching, createGame, onGameStart]);
+  }, [isConnected, isSearching, createGame]);
 
   return (
     <div className="bg-white bg-opacity-10 backdrop-blur-lg rounded-xl p-8">

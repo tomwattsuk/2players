@@ -5,7 +5,7 @@ import { Gamepad2, Loader2, AlertCircle, RefreshCw, Ship, Target, Crown } from '
 import ChatBox from './ChatBox';
 import GameEndModal from './GameEndModal';
 
-type GameType = 'battleships' | 'tictactoe' | 'checkers' | 'snake' | 'cooppong' | null;
+type GameType = 'tictactoe' | 'checkers' | 'spaceshooter' | null;
 
 interface GameAreaProps {
   onGameEnd?: () => void;
