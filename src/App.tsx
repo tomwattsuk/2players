@@ -4,8 +4,9 @@ import { useAuthStore } from './stores/useAuthStore';
 import GameArea from './components/GameArea';
 import Navbar from './components/Navbar';
 import { Users, Gamepad2, MessageSquare, Globe } from 'lucide-react';
-import { BrowserRouter as Router, Route, Routes } from 'react-router-dom'; // Added for routing
-import PlayNow from './components/PlayNow'; // Import the PlayNow component
+import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+import PlayNow from './components/PlayNow';
+import OnboardingFlow from './components/OnboardingFlow';
 
 
 const App: React.FC = () => {
@@ -36,12 +37,12 @@ const App: React.FC = () => {
   ];
 
   return (
-    <Router> {/* Added Router for routing */}
+    <Router>
       <div className="min-h-screen bg-gradient-to-br from-violet-900 via-slate-900 to-black">
         <Navbar />
 
         <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <Routes> {/* Added Routes for routing */}
+          <Routes>
             <Route path="/" element={
               <>
                 {!user && !loading ? (
@@ -89,7 +90,8 @@ const App: React.FC = () => {
                 )}
               </>
             } />
-            <Route path="/play" element={<PlayNow />} /> {/* Added route for PlayNow */}
+            <Route path="/play" element={<PlayNow />} />
+            <Route path="/onboarding" element={<OnboardingFlow />} />
           </Routes>
         </main>
       </div>

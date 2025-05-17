@@ -5,6 +5,14 @@ interface User {
   email: string | null;
   displayName: string | null;
   photoURL: string | null;
+  username?: string;
+  allowMessages?: boolean;
+}
+
+interface ProfileUpdate {
+  username?: string;
+  allowMessages?: boolean;
+  profilePicture?: string;
 }
 
 interface AuthState {
