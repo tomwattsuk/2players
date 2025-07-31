@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { TicTacToe, Checkers, Battleships, Snake } from './games';
+import { TicTacToe, Battleships, Checkers, Snake, SpaceShooter, CoopPong, WordDuel } from './games';
 import { useMultiplayer } from '../hooks/useMultiplayer';
 import { Gamepad2, Loader2, AlertCircle, RefreshCw, Ship, Target, Crown } from 'lucide-react';
 import ChatBox from './ChatBox';
@@ -141,90 +141,88 @@ export default function GameArea({ onGameEnd = () => {} }: GameAreaProps) {
     </div>
   );
 
-  const renderGameSelection = () => (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-6" role="menu">
-      <button
-        onClick={() => handleGameSelect('battleships')}
-        className="p-6 bg-white bg-opacity-5 rounded-xl hover:bg-opacity-10 transition group"
-        role="menuitem"
-        aria-label="Play Battleships"
-      >
-        <div className="flex flex-col items-center">
-          <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-lg flex items-center justify-center mb-4 group-hover:scale-110 transition">
-            <Ship size={32} className="text-white" aria-hidden="true" />
-          </div>
-          <h3 className="text-xl font-bold text-white">Battleships</h3>
-          <p className="text-gray-400 text-sm mt-2">Strategic naval warfare</p>
-        </div>
-      </button>
+  const renderGameSelection = () => {
+    const games = [
+    { 
+      id: 'wordduel', 
+      name: 'Word Duel', 
+      component: WordDuel,
+      description: 'Guess the hidden word first',
+      icon: '📝',
+      players: '2 Players'
+    },
+    { 
+      id: 'tictactoe', 
+      name: 'Tic Tac Toe', 
+      component: TicTacToe,
+      description: 'Classic 3x3 grid game',
+      icon: '⭕',
+      players: '2 Players'
+    },
+    { 
+      id: 'battleships', 
+      name: 'Battleships', 
+      component: Battleships,
+      description: 'Sink your opponent\'s fleet',
+      icon: '🚢',
+      players: '2 Players'
+    },
+    { 
+      id: 'checkers', 
+      name: 'Checkers', 
+      component: Checkers,
+      description: 'Strategic board game',
+      icon: '⚫',
+      players: '2 Players'
+    },
+    { 
+      id: 'snake', 
+      name: 'Snake Battle', 
+      component: Snake,
+      description: 'Competitive snake game',
+      icon: '🐍',
+      players: '2 Players'
+    },
+    { 
+      id: 'spaceshooter', 
+      name: 'Space Shooter', 
+      component: SpaceShooter,
+      description: 'Defend against aliens',
+      icon: '🚀',
+      players: '1-2 Players'
+    },
+    { 
+      id: 'cooppong', 
+      name: 'Coop Pong', 
+      component: CoopPong,
+      description: 'Work together in Pong',
+      icon: '🏓',
+      players: '2 Players'
+    }
+  ];
 
-      <button
-        onClick={() => handleGameSelect('tictactoe')}
-        className="p-6 bg-white bg-opacity-5 rounded-xl hover:bg-opacity-10 transition group"
-        role="menuitem"
-        aria-label="Play Tic Tac Toe"
-      >
-        <div className="flex flex-col items-center">
-          <div className="w-16 h-16 bg-gradient-to-br from-pink-500 to-violet-500 rounded-lg flex items-center justify-center mb-4 group-hover:scale-110 transition">
-            <Target size={32} className="text-white" aria-hidden="true" />
-          </div>
-          <h3 className="text-xl font-bold text-white">Tic Tac Toe</h3>
-          <p className="text-gray-400 text-sm mt-2">Classic X's and O's</p>
-        </div>
-      </button>
-
-      <button
-        onClick={() => handleGameSelect('checkers')}
-        className="p-6 bg-white bg-opacity-5 rounded-xl hover:bg-opacity-10 transition group"
-        role="menuitem"
-        aria-label="Play Checkers"
-      >
-        <div className="flex flex-col items-center">
-          <div className="w-16 h-16 bg-gradient-to-br from-amber-500 to-yellow-500 rounded-lg flex items-center justify-center mb-4 group-hover:scale-110 transition">
-            <Crown size={32} className="text-white" aria-hidden="true" />
-          </div>
-          <h3 className="text-xl font-bold text-white">Checkers</h3>
-          <p className="text-gray-400 text-sm mt-2">Strategic board game</p>
-        </div>
-      </button>
-
-      <button
-        onClick={() => handleGameSelect('cooppong')}
-        className="p-6 bg-white bg-opacity-5 rounded-xl hover:bg-opacity-10 transition group"
-        role="menuitem"
-        aria-label="Play Cooperative Pong"
-      >
-        <div className="flex flex-col items-center">
-          <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-indigo-500 rounded-lg flex items-center justify-center mb-4 group-hover:scale-110 transition">
-            <svg viewBox="0 0 24 24" className="w-8 h-8 text-white" fill="none" stroke="currentColor">
-              <circle cx="12" cy="12" r="3" strokeWidth={2} />
-              <path d="M3 12h6M15 12h6" strokeWidth={2} />
-            </svg>
-          </div>
-          <h3 className="text-xl font-bold text-white">Co-op Pong</h3>
-          <p className="text-gray-400 text-sm mt-2">Work together to score</p>
-        </div>
-      </button>
-
-      <button
-        onClick={() => handleGameSelect('snake')}
-        className="p-6 bg-white bg-opacity-5 rounded-xl hover:bg-opacity-10 transition group"
-        role="menuitem"
-        aria-label="Play Snake"
-      >
-        <div className="flex flex-col items-center">
-          <div className="w-16 h-16 bg-gradient-to-br from-green-500 to-emerald-500 rounded-lg flex items-center justify-center mb-4 group-hover:scale-110 transition">
-            <svg viewBox="0 0 24 24" className="w-8 h-8 text-white" fill="none" stroke="currentColor">
-              <path d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" strokeWidth={2} />
-              <path d="M9 12h6m-6 0l-3-3m3 3l-3 3" strokeWidth={2} />
-            </svg>
-          </div>
-          <h3 className="text-xl font-bold text-white">Snake</h3>
-          <p className="text-gray-400 text-sm mt-2">Classic arcade game</p>
-        </div>
-      </button>
-    </div>
-  );
+    return (
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6" role="menu">
+        {games.map((game) => (
+          <button
+            key={game.id}
+            onClick={() => handleGameSelect(game.id as GameType)}
+            className="p-6 bg-white bg-opacity-5 rounded-xl hover:bg-opacity-10 transition group"
+            role="menuitem"
+            aria-label={`Play ${game.name}`}
+          >
+            <div className="flex flex-col items-center">
+              <div className="w-16 h-16 rounded-lg flex items-center justify-center mb-4 group-hover:scale-110 transition" style={{ backgroundColor: 'rgba(255,255,255,0.1)' }}>
+                {game.icon}
+              </div>
+              <h3 className="text-xl font-bold text-white">{game.name}</h3>
+              <p className="text-gray-400 text-sm mt-2">{game.description}</p>
+            </div>
+          </button>
+        ))}
+      </div>
+    );
+  };
 
   return (
     <div className="bg-white bg-opacity-10 backdrop-blur-lg rounded-xl p-8 relative">

@@ -27,9 +27,14 @@ export default function AuthModal({ onClose, initialSignUp = false }: AuthModalP
   // Close modal if user is logged in
   React.useEffect(() => {
     if (user) {
-      onClose();
+      // Check if user needs onboarding (no username set)
+      if (!user.username && isSignUp) {
+        window.location.href = '/onboarding';
+      } else {
+        onClose();
+      }
     }
-  }, [user, onClose]);
+  }, [user, onClose, isSignUp]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

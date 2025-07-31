@@ -24,6 +24,7 @@ interface AuthState {
   signInWithEmail: (email: string, password: string) => Promise<void>;
   signUp: (email: string, password: string, username: string) => Promise<void>;
   signOut: () => Promise<void>;
+  updateProfile: (updates: ProfileUpdate) => Promise<void>;
 }
 
 export const useAuthStore = create<AuthState>((set) => ({
@@ -124,6 +125,20 @@ export const useAuthStore = create<AuthState>((set) => ({
     set({ loading: true });
     try {
       set({ user: null, error: null });
+    } finally {
+      set({ loading: false });
+    }
+  },
+
+  updateProfile: async (updates: ProfileUpdate) => {
+    set({ loading: true, error: null });
+    try {
+      set(state => ({
+        user: state.user ? { ...state.user, ...updates } : null
+      }));
+    } catch (error) {
+      set({ error: 'Failed to update profile' });
+      throw error;
     } finally {
       set({ loading: false });
     }
