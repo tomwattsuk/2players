@@ -11,7 +11,11 @@ import OnboardingFlow from './components/OnboardingFlow';
 
 const App: React.FC = () => {
   const { onlinePlayers, isConnected } = useWebSocket();
-  const { user, loading } = useAuthStore();
+  const { user, loading, initializeAuth } = useAuthStore();
+
+  React.useEffect(() => {
+    initializeAuth();
+  }, [initializeAuth]);
 
   const features = [
     {
