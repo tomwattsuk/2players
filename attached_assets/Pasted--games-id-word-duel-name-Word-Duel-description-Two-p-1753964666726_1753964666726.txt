@@ -1,0 +1,84 @@
+{
+  "games": [
+    {
+      "id": "word_duel",
+      "name": "Word Duel",
+      "description": "Two players guess a hidden word. Hints are revealed after each guess. First to solve wins.",
+      "core_mechanics": ["turn-based", "word logic", "letter feedback"],
+      "tech_notes": "Use socket.io for real-time turns; responsive UI with HTML/CSS; keep word dictionary in backend.",
+      "social_features": ["emotes", "in-game chat", "rematch prompt"],
+      "mobile_friendly": true,
+      "priority": 1
+    },
+    {
+      "id": "aim_arena",
+      "name": "Aim Arena",
+      "description": "Players take turns flicking pucks into score zones or trying to knock out their opponent.",
+      "core_mechanics": ["turn-based", "physics-based", "flick/drag controls"],
+      "tech_notes": "Use canvas or Phaser.js for physics; handle turns with sockets.",
+      "social_features": ["react buttons", "best of 3", "taunt/friend prompts"],
+      "mobile_friendly": true,
+      "priority": 2
+    },
+    {
+      "id": "co_op_puzzle",
+      "name": "Co-op Puzzle Room",
+      "description": "Each player sees only part of the solution and must communicate to solve logic puzzles together.",
+      "core_mechanics": ["cooperative", "real-time", "puzzle solving"],
+      "tech_notes": "Shared state via sockets; create modular puzzles with scalable difficulty.",
+      "social_features": ["shared timer", "text chat", "congrats/friend after solve"],
+      "mobile_friendly": true,
+      "priority": 1
+    },
+    {
+      "id": "doodle_guess",
+      "name": "Guess the Doodle",
+      "description": "One player draws, the other guesses. Switch roles each round.",
+      "core_mechanics": ["drawing", "guessing", "timed rounds"],
+      "tech_notes": "Canvas drawing synced over sockets; guessing input box; scoring logic per round.",
+      "social_features": ["funny drawings", "laugh emoji reactions", "profile link after game"],
+      "mobile_friendly": true,
+      "priority": 2
+    },
+    {
+      "id": "snake_duel",
+      "name": "Duel Snake Arena",
+      "description": "Classic snake-style battle. Outmaneuver your opponent on a tight grid.",
+      "core_mechanics": ["real-time", "grid movement", "survival"],
+      "tech_notes": "Use HTML canvas or Phaser.js; update state via socket tick; mobile swipe control support.",
+      "social_features": ["leaderboard", "rematch", "add friend on tie/win"],
+      "mobile_friendly": true,
+      "priority": 2
+    },
+    {
+      "id": "typing_race",
+      "name": "Typing Showdown",
+      "description": "Race to type the phrase perfectly before your opponent. Includes twist modes (e.g. reverse text).",
+      "core_mechanics": ["real-time", "accuracy typing"],
+      "tech_notes": "WebSockets for syncing; adjustable mobile keyboard support.",
+      "social_features": ["fun phrases", "replay phrase", "trash talk button"],
+      "mobile_friendly": true,
+      "priority": 3
+    },
+    {
+      "id": "tower_climb",
+      "name": "Tower Climb Co-op",
+      "description": "Players climb a tower and dodge hazards — but must stay near each other to progress.",
+      "core_mechanics": ["co-op", "platformer", "shared movement"],
+      "tech_notes": "Simple platformer logic; joint camera follow; HTML canvas or Phaser.js.",
+      "social_features": ["progress meter", "in-game nudge button", "team win reward"],
+      "mobile_friendly": true,
+      "priority": 1
+    },
+    {
+      "id": "truth_or_trick",
+      "name": "Truth or Trick",
+      "description": "Players submit one true and one false fact. Opponent guesses which is true.",
+      "core_mechanics": ["bluffing", "guessing", "turn-based"],
+      "tech_notes": "Backend fact storage; basic input/guess UI; socket-based sync.",
+      "social_features": ["laugh score", "chat enabled", "add friend if guessed right"],
+      "mobile_friendly": true,
+      "priority": 2
+    }
+  ]
+}
