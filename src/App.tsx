@@ -1,21 +1,12 @@
-import React from 'react';
 import { useOnlinePlayers } from './hooks/useOnlinePlayers';
-import { useAuthStore } from './stores/useAuthStore';
-import GameArea from './components/GameArea';
 import Navbar from './components/Navbar';
 import { Users, Gamepad2, MessageSquare, Globe } from 'lucide-react';
-import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+import { BrowserRouter as Router, Route, Routes, useNavigate } from 'react-router-dom';
 import PlayNow from './components/PlayNow';
-import OnboardingFlow from './components/OnboardingFlow';
 
-
-const App: React.FC = () => {
+function HomePage() {
+  const navigate = useNavigate();
   const { onlinePlayers, isConnected } = useOnlinePlayers();
-  const { user, loading, initializeAuth } = useAuthStore();
-
-  React.useEffect(() => {
-    initializeAuth();
-  }, [initializeAuth]);
 
   const features = [
     {
@@ -25,13 +16,13 @@ const App: React.FC = () => {
     },
     {
       icon: <Users className="w-8 h-8 text-violet-500" />,
-      title: "Make New Friends",
-      description: "Connect with players, send friend requests, and build your gaming circle"
+      title: "No Account Needed",
+      description: "Jump straight into games - no sign up required. Just pick a name and play!"
     },
     {
       icon: <MessageSquare className="w-8 h-8 text-blue-500" />,
-      title: "Live Chat",
-      description: "Chat with your opponents during games and make new connections"
+      title: "Video, Voice & Text Chat",
+      description: "Connect with opponents using your webcam, microphone, or text messages"
     },
     {
       icon: <Globe className="w-8 h-8 text-green-500" />,
@@ -41,61 +32,56 @@ const App: React.FC = () => {
   ];
 
   return (
+    <div className="py-12 sm:py-20">
+      <div className="text-center mb-16">
+        <h1 className="text-4xl sm:text-6xl font-bold mb-6 bg-gradient-to-r from-pink-500 via-violet-500 to-blue-500 text-transparent bg-clip-text">
+          Play Games. Meet People.
+        </h1>
+        <p className="text-xl text-gray-300 mb-8 max-w-2xl mx-auto">
+          Challenge players worldwide in real-time multiplayer games. No account needed - just pick a name and start playing!
+        </p>
+        {isConnected && onlinePlayers > 0 && (
+          <p className="text-green-400 text-lg animate-pulse">
+            {onlinePlayers} Players Online Now
+          </p>
+        )}
+      </div>
+
+      <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8 mb-16">
+        {features.map((feature, index) => (
+          <div
+            key={index}
+            className="bg-white/5 backdrop-blur-lg rounded-xl p-6 hover:bg-white/10 transition"
+          >
+            <div className="mb-4">{feature.icon}</div>
+            <h3 className="text-xl font-semibold text-white mb-2">{feature.title}</h3>
+            <p className="text-gray-400">{feature.description}</p>
+          </div>
+        ))}
+      </div>
+
+      <div className="text-center">
+        <button
+          onClick={() => navigate('/play')}
+          className="px-8 py-4 bg-gradient-to-r from-pink-500 to-violet-500 text-white rounded-lg text-lg font-semibold hover:opacity-90 transition"
+        >
+          Start Playing Now
+        </button>
+      </div>
+    </div>
+  );
+}
+
+const App: React.FC = () => {
+  return (
     <Router>
       <div className="min-h-screen bg-gradient-to-br from-violet-900 via-slate-900 to-black">
         <Navbar />
 
         <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <Routes>
-            <Route path="/" element={
-              <>
-                {!user && !loading ? (
-                  <div className="py-12 sm:py-20">
-                    <div className="text-center mb-16">
-                      <h1 className="text-4xl sm:text-6xl font-bold mb-6 bg-gradient-to-r from-pink-500 via-violet-500 to-blue-500 text-transparent bg-clip-text">
-                        Play Games. Meet People.
-                      </h1>
-                      <p className="text-xl text-gray-300 mb-8 max-w-2xl mx-auto">
-                        Challenge players worldwide in real-time multiplayer games and make new friends along the way.
-                      </p>
-                      {isConnected && onlinePlayers > 0 && (
-                        <p className="text-green-400 text-lg animate-pulse">
-                          {onlinePlayers} Players Online Now
-                        </p>
-                      )}
-                    </div>
-
-                    <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8 mb-16">
-                      {features.map((feature, index) => (
-                        <div
-                          key={index}
-                          className="bg-white/5 backdrop-blur-lg rounded-xl p-6 hover:bg-white/10 transition"
-                        >
-                          <div className="mb-4">{feature.icon}</div>
-                          <h3 className="text-xl font-semibold text-white mb-2">{feature.title}</h3>
-                          <p className="text-gray-400">{feature.description}</p>
-                        </div>
-                      ))}
-                    </div>
-
-                    <div className="text-center">
-                      <button
-                        onClick={() => window.location.href = '/play'}
-                        className="px-8 py-4 bg-gradient-to-r from-pink-500 to-violet-500 text-white rounded-lg text-lg font-semibold hover:opacity-90 transition"
-                      >
-                        Start Playing Now
-                      </button>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="py-8">
-                    <GameArea />
-                  </div>
-                )}
-              </>
-            } />
+            <Route path="/" element={<HomePage />} />
             <Route path="/play" element={<PlayNow />} />
-            <Route path="/onboarding" element={<OnboardingFlow />} />
           </Routes>
         </main>
       </div>

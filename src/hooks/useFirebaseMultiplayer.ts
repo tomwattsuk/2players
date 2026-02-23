@@ -53,6 +53,7 @@ export function useFirebaseMultiplayer() {
     const connectedRef = ref(database, '.info/connected');
     onValue(connectedRef, (snapshot) => {
       const connected = snapshot.val() === true;
+      console.log(`[2Players] Firebase connected: ${connected}`);
       setIsConnected(connected);
       setIsOffline(!connected);
       if (!connected) {
@@ -98,6 +99,9 @@ export function useFirebaseMultiplayer() {
   const createGame = useCallback(async (gameType: string) => {
     if (isMatchmaking) return;
 
+    console.log(`[2Players] Starting matchmaking for ${gameType}...`);
+    console.log(`[2Players] My player ID: ${playerId.current}`);
+
     setIsMatchmaking(true);
     setOpponentLeft(false);
     setMessages([]);
@@ -107,16 +111,20 @@ export function useFirebaseMultiplayer() {
       // Check for waiting players
       const waitingListRef = ref(database, `matchmaking/${gameType}`);
       const snapshot = await get(waitingListRef);
+      console.log(`[2Players] Checking for waiting players...`);
 
       if (snapshot.exists()) {
         const waitingPlayers = snapshot.val();
         const waitingIds = Object.keys(waitingPlayers);
+        console.log(`[2Players] Found ${waitingIds.length} waiting player(s):`, waitingPlayers);
 
         // Find first valid waiting player (not ourselves)
         for (const odId of waitingIds) {
+          console.log(`[2Players] Checking player ${waitingPlayers[odId].playerId} vs me ${playerId.current}`);
           if (waitingPlayers[odId].playerId !== playerId.current) {
             // Found a match! Join their game
             const existingGameId = waitingPlayers[odId].gameId;
+            console.log(`[2Players] MATCH FOUND! Joining game ${existingGameId}`);
 
             // Remove them from waiting list
             await remove(ref(database, `matchmaking/${gameType}/${odId}`));
@@ -146,8 +154,10 @@ export function useFirebaseMultiplayer() {
       }
 
       // No match found, create new game and wait
+      console.log(`[2Players] No match found, creating new game and waiting...`);
       const newGameRef = push(ref(database, 'games'));
       const newGameId = newGameRef.key!;
+      console.log(`[2Players] Created game ${newGameId}, adding to waiting list`);
 
       const gameData: GameData = {
         host: playerId.current,
@@ -185,6 +195,7 @@ export function useFirebaseMultiplayer() {
   }, [isMatchmaking]);
 
   const subscribeToGame = useCallback((gId: string) => {
+    console.log(`[2Players] Subscribing to game ${gId}`);
     // Subscribe to game state
     gameRef.current = ref(database, `games/${gId}`);
 
@@ -198,8 +209,11 @@ export function useFirebaseMultiplayer() {
 
       const gameData = snapshot.val() as GameData;
 
+      console.log(`[2Players] Game update:`, gameData);
+
       // Check if opponent joined (for host)
       if (gameData.status === 'playing' && gameData.guest) {
+        console.log(`[2Players] Opponent joined! Game is now playing.`);
         // Remove from waiting list
         if (waitingRef.current) {
           remove(waitingRef.current);
