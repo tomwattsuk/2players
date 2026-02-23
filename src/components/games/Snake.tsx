@@ -1,5 +1,4 @@
-
-import React, { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 
 type Direction = 'UP' | 'DOWN' | 'LEFT' | 'RIGHT';
 type Position = { x: number; y: number };
@@ -8,7 +7,15 @@ const GRID_SIZE = 20;
 const CELL_SIZE = 20;
 const INITIAL_SPEED = 150;
 
-export default function Snake({ onGameEnd, sendGameState, isHost }: any) {
+interface SnakeProps {
+  onGameEnd: (winner: string | null) => void;
+  sendGameState: (state: any) => void;
+  isHost: boolean;
+  gameId: string;
+  isOffline?: boolean;
+}
+
+export default function Snake({ onGameEnd, sendGameState }: SnakeProps) {
   const [snake, setSnake] = useState<Position[]>([{ x: 10, y: 10 }]);
   const [food, setFood] = useState<Position>({ x: 15, y: 15 });
   const [direction, setDirection] = useState<Direction>('RIGHT');

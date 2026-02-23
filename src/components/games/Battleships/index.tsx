@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Lock } from 'lucide-react';
 import Grid from './Grid';
 import ShipList from './ShipList';
@@ -14,11 +14,10 @@ interface BattleshipsProps {
   isOffline?: boolean;
 }
 
-const Battleships: React.FC<BattleshipsProps> = ({ 
-  onGameEnd, 
-  isHost, 
-  sendGameState,
-  isOffline = false 
+const Battleships: React.FC<BattleshipsProps> = ({
+  onGameEnd: _onGameEnd,
+  isHost,
+  sendGameState
 }) => {
   const [board, setBoard] = useState<Board>(initializeBoard());
   const [placedShips, setPlacedShips] = useState<Ship[]>([]);
@@ -27,7 +26,7 @@ const Battleships: React.FC<BattleshipsProps> = ({
   const [isLocked, setIsLocked] = useState(false);
   const [gameStarted, setGameStarted] = useState(false);
   const [opponentReady, setOpponentReady] = useState(false);
-  const [winner, setWinner] = useState<string | null>(null);
+  const [winner] = useState<string | null>(null);
 
   useEffect(() => {
     const handleGameState = (e: CustomEvent<GameState>) => {

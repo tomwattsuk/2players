@@ -1,7 +1,5 @@
-
 import { create } from 'zustand';
 import { supabase, type Profile } from '../lib/supabase';
-import type { User as SupabaseUser } from '@supabase/supabase-js';
 
 interface User {
   uid: string;
@@ -52,7 +50,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         set({
           user: {
             uid: session.user.id,
-            email: session.user.email,
+            email: session.user.email ?? null,
             displayName: profile?.username || session.user.email?.split('@')[0] || null,
             photoURL: profile?.avatar_url || null,
             username: profile?.username,
@@ -113,7 +111,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         set({
           user: {
             uid: data.user.id,
-            email: data.user.email,
+            email: data.user.email ?? null,
             displayName: profile?.username || data.user.email?.split('@')[0] || null,
             photoURL: profile?.avatar_url || null,
             username: profile?.username,
@@ -165,7 +163,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         set({
           user: {
             uid: data.user.id,
-            email: data.user.email,
+            email: data.user.email ?? null,
             displayName: username,
             photoURL: null,
             username,
@@ -327,7 +325,7 @@ supabase.auth.onAuthStateChange(async (event, session) => {
     useAuthStore.setState({
       user: {
         uid: session.user.id,
-        email: session.user.email,
+        email: session.user.email ?? null,
         displayName: profile?.username || session.user.email?.split('@')[0] || null,
         photoURL: profile?.avatar_url || null,
         username: profile?.username,

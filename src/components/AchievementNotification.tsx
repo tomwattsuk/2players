@@ -1,5 +1,3 @@
-
-import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 interface AchievementNotificationProps {
@@ -8,10 +6,10 @@ interface AchievementNotificationProps {
     description: string;
     icon: string;
   };
-  onClose: () => void;
+  onClose?: () => void;
 }
 
-export default function AchievementNotification({ achievement, onClose }: AchievementNotificationProps) {
+export default function AchievementNotification({ achievement }: AchievementNotificationProps) {
   return (
     <AnimatePresence>
       <motion.div

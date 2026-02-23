@@ -23,12 +23,17 @@ export function useCountry() {
 
       for (const endpoint of COUNTRY_API_ENDPOINTS) {
         try {
+          const controller = new AbortController();
+          const timeoutId = setTimeout(() => controller.abort(), 5000);
+
           const response = await fetch(endpoint, {
             headers: {
               'Accept': 'application/json'
             },
-            timeout: 5000
+            signal: controller.signal
           });
+
+          clearTimeout(timeoutId);
 
           if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);

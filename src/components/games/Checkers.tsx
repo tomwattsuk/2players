@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Crown } from 'lucide-react';
 
 interface CheckersProps {
-  onGameEnd: () => void;
+  onGameEnd: (winner: string | null) => void;
   isHost: boolean;
   sendGameState: (state: any) => void;
   gameId: string;
@@ -13,7 +13,7 @@ type Piece = null | { isKing: boolean; isRed: boolean };
 type Board = Piece[][];
 type Position = { row: number; col: number };
 
-const Checkers = ({ onGameEnd, isHost, sendGameState, gameId, isOffline = false }: CheckersProps) => {
+const Checkers = ({ onGameEnd, isHost, sendGameState }: CheckersProps) => {
   const [board, setBoard] = useState<Board>(initializeBoard());
   const [isRedTurn, setIsRedTurn] = useState(true);
   const [validMoves, setValidMoves] = useState<Position[]>([]);
@@ -31,7 +31,7 @@ const Checkers = ({ onGameEnd, isHost, sendGameState, gameId, isOffline = false 
         setIsRedTurn(state.data.isRedTurn);
         if (state.data.winner) {
           setWinner(state.data.winner);
-          setTimeout(onGameEnd, 1500);
+          setTimeout(() => onGameEnd(state.data.winner), 1500);
         }
       }
     };
@@ -208,7 +208,7 @@ const Checkers = ({ onGameEnd, isHost, sendGameState, gameId, isOffline = false 
       const gameWinner = checkWinner(newBoard);
       if (gameWinner) {
         setWinner(gameWinner);
-        setTimeout(onGameEnd, 1500);
+        setTimeout(() => onGameEnd(gameWinner), 1500);
       }
 
       setBoard(newBoard);

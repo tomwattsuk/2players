@@ -1,5 +1,3 @@
-
-import React from 'react';
 import { Link } from 'react-router-dom';
 import { Gamepad, Users, MessageSquare } from 'lucide-react';
 import { useAuthStore } from '../stores/useAuthStore';

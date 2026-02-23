@@ -2,10 +2,10 @@ import { useEffect, useRef, useState, useCallback } from 'react';
 import type { WebSocketMessage } from '../types/game';
 
 const WEBSOCKET_SERVERS = [
+  import.meta.env.DEV ? `ws://${window.location.hostname}:3000/ws` : null,
   import.meta.env.VITE_WS_URL,
   'wss://2players-io.glitch.me',
-  'wss://2players-backup.glitch.me',
-  import.meta.env.DEV ? `ws://${window.location.hostname}${window.location.port ? ':' + window.location.port : ''}/ws` : null
+  'wss://2players-backup.glitch.me'
 ].filter(Boolean) as string[];
 
 interface WebSocketState {

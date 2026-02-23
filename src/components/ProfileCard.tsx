@@ -1,4 +1,3 @@
-import React from 'react';
 import { User, Trophy, Star } from 'lucide-react';
 
 const ProfileCard = () => {

@@ -1,6 +1,4 @@
-import React from 'react';
 import { Users, Globe2 } from 'lucide-react';
-import { useCountry } from '../hooks/useCountry';
 
 interface StatsProps {
   onlinePlayers: number;
@@ -9,7 +7,6 @@ interface StatsProps {
 }
 
 export default function Stats({ onlinePlayers, opponentCountry, inGame = false }: StatsProps) {
-  const { country, loading } = useCountry();
 
   return (
     <div className="flex items-center justify-end gap-4" role="region" aria-label="Game Statistics">

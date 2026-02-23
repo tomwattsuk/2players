@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Anchor, Target, Crosshair } from 'lucide-react';
 
 interface BattleshipsProps {
@@ -18,8 +18,7 @@ const SHIPS = [5, 4, 3, 3, 2]; // Ship lengths
 const Battleships: React.FC<BattleshipsProps> = ({
   onGameEnd,
   isHost,
-  sendGameState,
-  isOffline = false
+  sendGameState
 }) => {
   const [myBoard, setMyBoard] = useState<Board>(initializeBoard());
   const [opponentBoard, setOpponentBoard] = useState<Board>(initializeBoard());

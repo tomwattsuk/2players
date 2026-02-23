@@ -1,13 +1,13 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useMultiplayer } from '../hooks/useMultiplayer';
 import { Loader2 } from 'lucide-react';
 
 interface GameLobbyProps {
-  onGameStart: (gameId: string) => void;
+  onGameStart?: (gameId: string) => void;
 }
 
-export function GameLobby({ onGameStart }: GameLobbyProps) {
-  const { isConnected, createGame, joinGame } = useMultiplayer();
+export function GameLobby(_props: GameLobbyProps) {
+  const { isConnected, createGame } = useMultiplayer();
   const [isSearching, setIsSearching] = useState(false);
 
   useEffect(() => {

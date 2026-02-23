@@ -1,9 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { UserPlus, Home, RefreshCw } from 'lucide-react';
 
 interface GameEndModalProps {
   show: boolean;
-  gameType: 'checkers' | 'tictactoe' | 'spaceshooter';
+  gameType: 'checkers' | 'tictactoe' | 'spaceshooter' | 'battleships' | 'snake' | 'cooppong' | 'wordduel' | null;
   winner: string | null;
   opponentDisconnected?: boolean;
   onMainMenu: () => void;
@@ -31,11 +31,15 @@ export default function GameEndModal({
 
   if (!show) return null;
 
-  const gameTypeName = {
+  const gameTypeName = gameType ? {
     checkers: 'Checkers',
     tictactoe: 'Tic Tac Toe',
-    spaceshooter: 'Space Shooter'
-  }[gameType];
+    spaceshooter: 'Space Shooter',
+    battleships: 'Battleships',
+    snake: 'Snake Battle',
+    cooppong: 'Coop Pong',
+    wordduel: 'Word Duel'
+  }[gameType] : 'this game';
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">

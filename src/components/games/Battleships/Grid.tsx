@@ -14,6 +14,7 @@ interface GridProps {
   placedShips?: Ship[];
   onShipMove?: (ship: Ship, x: number, y: number) => void;
   isLocked?: boolean;
+  showShips?: boolean;
 }
 
 const Grid: React.FC<GridProps> = ({
@@ -24,7 +25,8 @@ const Grid: React.FC<GridProps> = ({
   onDrop,
   placedShips = [],
   onShipMove,
-  isLocked = false
+  isLocked = false,
+  showShips: _showShips = true
 }) => {
   const [hoverCell, setHoverCell] = React.useState<{ x: number; y: number } | null>(null);
   const [lastHit, setLastHit] = React.useState<{ x: number; y: number } | null>(null);
@@ -122,7 +124,10 @@ const Grid: React.FC<GridProps> = ({
                   draggable={isDraggable}
                   onDragStart={(e) => {
                     if (ship && !isLocked) {
-                      e.dataTransfer.setData('text/plain', ship.name);
+                      const dragEvent = e as unknown as React.DragEvent;
+                      if (dragEvent.dataTransfer) {
+                        dragEvent.dataTransfer.setData('text/plain', ship.name);
+                      }
                       onShipMove?.(ship, x, y);
                     }
                   }}

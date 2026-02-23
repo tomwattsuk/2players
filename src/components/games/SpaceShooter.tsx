@@ -1,10 +1,12 @@
-import React, { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useInterval } from '../../hooks/useInterval';
 
 interface SpaceShooterProps {
-  onGameEnd: () => void;
+  onGameEnd: (winner: string | null) => void;
   isHost: boolean;
   sendGameState: (state: any) => void;
+  gameId?: string;
+  isOffline?: boolean;
 }
 
 interface GameObject {
@@ -130,7 +132,7 @@ const SpaceShooter = ({ onGameEnd, isHost, sendGameState }: SpaceShooterProps) =
         }))
         .filter(enemy => {
           if (enemy.y > CANVAS_HEIGHT) {
-            onGameEnd();
+            onGameEnd(null);
             return false;
           }
           return true;

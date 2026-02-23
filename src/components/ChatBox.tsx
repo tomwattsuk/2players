@@ -1,5 +1,5 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { Send, MessageSquare, SmilePlus } from 'lucide-react';
+import { useState, useRef, useEffect } from 'react';
+import { Send, MessageSquare } from 'lucide-react';
 
 interface ChatBoxProps {
   onSendMessage: (message: string) => void;

@@ -1,15 +1,15 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { X, Circle } from 'lucide-react';
 
 interface TicTacToeProps {
-  onGameEnd: () => void;
+  onGameEnd: (winner: string | null) => void;
   isHost: boolean;
   sendGameState: (state: any) => void;
   gameId: string;
   isOffline?: boolean;
 }
 
-const TicTacToe = ({ onGameEnd, isHost, sendGameState, gameId, isOffline = false }: TicTacToeProps) => {
+const TicTacToe = ({ onGameEnd, isHost, sendGameState }: TicTacToeProps) => {
   const [board, setBoard] = useState(Array(9).fill(null));
   const [isXNext, setIsXNext] = useState(true);
   const [gameOver, setGameOver] = useState(false);
@@ -50,7 +50,7 @@ const TicTacToe = ({ onGameEnd, isHost, sendGameState, gameId, isOffline = false
     const winner = calculateWinner(newBoard);
     if (winner || newBoard.every(square => square)) {
       setGameOver(true);
-      setTimeout(onGameEnd, 1500);
+      setTimeout(() => onGameEnd(winner), 1500);
     }
   };
 

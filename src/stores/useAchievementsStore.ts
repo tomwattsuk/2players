@@ -38,9 +38,9 @@ export const useAchievementsStore = create<AchievementsState>((set, get) => ({
     }));
   },
 
-  checkGameAchievements: (gameType: string, isWin: boolean) => {
-    const { achievements, unlockedAchievements, unlockAchievement } = get();
-    
+  checkGameAchievements: (_gameType: string, isWin: boolean) => {
+    const { unlockedAchievements, unlockAchievement } = get();
+
     if (isWin && !unlockedAchievements.includes('first_win')) {
       unlockAchievement('first_win');
     }

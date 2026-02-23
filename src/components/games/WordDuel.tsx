@@ -1,107 +1,112 @@
-
-import React, { useState, useEffect } from 'react';
-import { useMultiplayer } from '../../hooks/useMultiplayer';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Send, Trophy, Clock, User } from 'lucide-react';
+
+interface WordDuelProps {
+  onGameEnd: (winner: string | null) => void;
+  isHost: boolean;
+  sendGameState: (state: any) => void;
+  gameId: string;
+  isOffline?: boolean;
+}
 
 interface WordDuelState {
   word: string;
   guesses: Array<{
     word: string;
     feedback: Array<'correct' | 'present' | 'absent'>;
-    player: string;
+    player: 'host' | 'guest';
   }>;
-  currentPlayer: string;
-  winner: string | null;
+  currentPlayer: 'host' | 'guest';
+  winner: 'host' | 'guest' | 'draw' | null;
   gamePhase: 'waiting' | 'playing' | 'finished';
   maxGuesses: number;
   timeLeft: number;
 }
 
-const WordDuel: React.FC = () => {
+const WORDS = [
+  'GAMES', 'QUEST', 'MAGIC', 'BRAVE', 'STORM', 'PLANT', 'DANCE', 'MUSIC',
+  'HEART', 'LIGHT', 'DREAM', 'SPACE', 'OCEAN', 'MOUNT', 'TIGER', 'PEACE'
+];
+
+const WordDuel = ({ onGameEnd, isHost, sendGameState }: WordDuelProps) => {
   const [guess, setGuess] = useState('');
   const [gameState, setGameState] = useState<WordDuelState>({
     word: '',
     guesses: [],
-    currentPlayer: '',
+    currentPlayer: 'host',
     winner: null,
     gamePhase: 'waiting',
     maxGuesses: 6,
     timeLeft: 30
   });
-  
-  const { 
-    socket, 
-    isConnected, 
-    playerId, 
-    opponentId, 
-    isHost,
-    sendGameData,
-    gameData 
-  } = useMultiplayer('word_duel');
 
-  useEffect(() => {
-    if (gameData) {
-      setGameState(gameData);
-    }
-  }, [gameData]);
-
+  // Initialize game if host
   useEffect(() => {
     if (isHost && gameState.gamePhase === 'waiting') {
-      initializeGame();
+      const randomWord = WORDS[Math.floor(Math.random() * WORDS.length)];
+      const newState: WordDuelState = {
+        ...gameState,
+        word: randomWord,
+        currentPlayer: 'host',
+        gamePhase: 'playing',
+        timeLeft: 30
+      };
+      setGameState(newState);
+      sendGameState({ type: 'wordduel', data: newState });
     }
-  }, [isHost, opponentId]);
+  }, [isHost]);
 
+  // Listen for game state updates
+  useEffect(() => {
+    const handleGameState = (e: CustomEvent) => {
+      const state = e.detail;
+      if (state.type === 'wordduel') {
+        setGameState(state.data);
+        if (state.data.winner && state.data.winner !== 'draw') {
+          setTimeout(() => onGameEnd(state.data.winner), 1500);
+        } else if (state.data.winner === 'draw') {
+          setTimeout(() => onGameEnd(null), 1500);
+        }
+      }
+    };
+
+    window.addEventListener('game_state', handleGameState as EventListener);
+    return () => {
+      window.removeEventListener('game_state', handleGameState as EventListener);
+    };
+  }, [onGameEnd]);
+
+  // Timer
   useEffect(() => {
     let timer: NodeJS.Timeout;
-    if (gameState.gamePhase === 'playing' && gameState.currentPlayer === playerId && gameState.timeLeft > 0) {
+    const myRole = isHost ? 'host' : 'guest';
+
+    if (gameState.gamePhase === 'playing' && gameState.currentPlayer === myRole && gameState.timeLeft > 0) {
       timer = setInterval(() => {
         setGameState(prev => {
           const newTimeLeft = prev.timeLeft - 1;
           if (newTimeLeft <= 0) {
-            // Time's up, switch to opponent
-            const newState = {
+            const newState: WordDuelState = {
               ...prev,
-              currentPlayer: prev.currentPlayer === playerId ? opponentId || '' : playerId || '',
+              currentPlayer: prev.currentPlayer === 'host' ? 'guest' : 'host',
               timeLeft: 30
             };
-            sendGameData(newState);
+            sendGameState({ type: 'wordduel', data: newState });
             return newState;
           }
-          const newState = { ...prev, timeLeft: newTimeLeft };
-          sendGameData(newState);
-          return newState;
+          return { ...prev, timeLeft: newTimeLeft };
         });
       }, 1000);
     }
     return () => clearInterval(timer);
-  }, [gameState.gamePhase, gameState.currentPlayer, gameState.timeLeft, playerId, opponentId, sendGameData]);
-
-  const initializeGame = () => {
-    const words = [
-      'GAMES', 'QUEST', 'MAGIC', 'BRAVE', 'STORM', 'PLANT', 'DANCE', 'MUSIC',
-      'HEART', 'LIGHT', 'DREAM', 'SPACE', 'OCEAN', 'MOUNT', 'TIGER', 'PEACE'
-    ];
-    
-    const randomWord = words[Math.floor(Math.random() * words.length)];
-    
-    const newState: WordDuelState = {
-      ...gameState,
-      word: randomWord,
-      currentPlayer: playerId || '',
-      gamePhase: 'playing',
-      timeLeft: 30
-    };
-    
-    setGameState(newState);
-    sendGameData(newState);
-  };
+  }, [gameState.gamePhase, gameState.currentPlayer, isHost, sendGameState]);
 
   const checkGuess = (guessWord: string, targetWord: string) => {
     const feedback: Array<'correct' | 'present' | 'absent'> = [];
     const targetLetters = targetWord.split('');
     const guessLetters = guessWord.split('');
-    
+
     // First pass: mark correct positions
     for (let i = 0; i < guessLetters.length; i++) {
       if (guessLetters[i] === targetLetters[i]) {
@@ -110,7 +115,7 @@ const WordDuel: React.FC = () => {
         guessLetters[i] = '';
       }
     }
-    
+
     // Second pass: mark present letters
     for (let i = 0; i < guessLetters.length; i++) {
       if (guessLetters[i] && targetLetters.includes(guessLetters[i])) {
@@ -121,51 +126,46 @@ const WordDuel: React.FC = () => {
         feedback[i] = 'absent';
       }
     }
-    
+
     return feedback;
   };
 
   const submitGuess = () => {
-    if (guess.length !== 5 || gameState.currentPlayer !== playerId) return;
-    
+    const myRole = isHost ? 'host' : 'guest';
+    if (guess.length !== 5 || gameState.currentPlayer !== myRole) return;
+
     const feedback = checkGuess(guess.toUpperCase(), gameState.word);
     const isCorrect = feedback.every(f => f === 'correct');
-    
+
     const newGuess = {
       word: guess.toUpperCase(),
       feedback,
-      player: playerId || ''
+      player: myRole as 'host' | 'guest'
     };
-    
-    const newState = {
+
+    const newState: WordDuelState = {
       ...gameState,
       guesses: [...gameState.guesses, newGuess],
-      winner: isCorrect ? playerId : null,
-      gamePhase: isCorrect ? 'finished' as const : gameState.gamePhase,
-      currentPlayer: isCorrect ? gameState.currentPlayer : (gameState.currentPlayer === playerId ? opponentId || '' : playerId || ''),
+      winner: isCorrect ? myRole : null,
+      gamePhase: isCorrect ? 'finished' : gameState.gamePhase,
+      currentPlayer: isCorrect ? gameState.currentPlayer : (gameState.currentPlayer === 'host' ? 'guest' : 'host'),
       timeLeft: 30
     };
-    
+
     // Check if max guesses reached
     if (newState.guesses.length >= gameState.maxGuesses && !isCorrect) {
       newState.gamePhase = 'finished';
       newState.winner = 'draw';
     }
-    
+
     setGameState(newState);
-    sendGameData(newState);
+    sendGameState({ type: 'wordduel', data: newState });
     setGuess('');
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter') {
       submitGuess();
-    }
-  };
-
-  const resetGame = () => {
-    if (isHost) {
-      initializeGame();
     }
   };
 
@@ -182,25 +182,8 @@ const WordDuel: React.FC = () => {
     }
   };
 
-  if (!isConnected) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <div className="text-white">Connecting...</div>
-      </div>
-    );
-  }
-
-  if (!opponentId) {
-    return (
-      <div className="text-center p-8">
-        <h3 className="text-2xl font-bold text-white mb-4">Word Duel</h3>
-        <p className="text-gray-400">Waiting for another player to join...</p>
-        <div className="animate-pulse mt-4">
-          <div className="w-8 h-8 bg-blue-500 rounded-full mx-auto"></div>
-        </div>
-      </div>
-    );
-  }
+  const myRole = isHost ? 'host' : 'guest';
+  const isMyTurn = gameState.currentPlayer === myRole;
 
   return (
     <div className="max-w-2xl mx-auto p-6 bg-slate-800 rounded-xl">
@@ -214,7 +197,7 @@ const WordDuel: React.FC = () => {
         <div className="flex items-center gap-2">
           <User className="w-5 h-5 text-blue-400" />
           <span className="text-white">
-            {gameState.currentPlayer === playerId ? 'Your Turn' : "Opponent's Turn"}
+            {isMyTurn ? 'Your Turn' : "Opponent's Turn"}
           </span>
         </div>
         <div className="flex items-center gap-2">
@@ -242,12 +225,12 @@ const WordDuel: React.FC = () => {
             ))}
             <div className="ml-2 flex items-center">
               <span className="text-xs text-gray-400">
-                {guessData.player === playerId ? 'You' : 'Opponent'}
+                {guessData.player === myRole ? 'You' : 'Opponent'}
               </span>
             </div>
           </motion.div>
         ))}
-        
+
         {/* Empty rows */}
         {Array.from({ length: gameState.maxGuesses - gameState.guesses.length }).map((_, index) => (
           <div key={`empty-${index}`} className="flex gap-1 justify-center">
@@ -262,7 +245,7 @@ const WordDuel: React.FC = () => {
       </div>
 
       {/* Input Area */}
-      {gameState.gamePhase === 'playing' && gameState.currentPlayer === playerId && (
+      {gameState.gamePhase === 'playing' && isMyTurn && (
         <div className="mb-6">
           <div className="flex gap-2">
             <input
@@ -295,20 +278,12 @@ const WordDuel: React.FC = () => {
         >
           <Trophy className="w-12 h-12 mx-auto mb-4 text-yellow-400" />
           <h3 className="text-2xl font-bold text-white mb-2">
-            {gameState.winner === playerId ? 'You Won!' : 
+            {gameState.winner === myRole ? 'You Won!' :
              gameState.winner === 'draw' ? "It's a Draw!" : 'You Lost!'}
           </h3>
           <p className="text-gray-400 mb-4">
             The word was: <span className="text-white font-bold">{gameState.word}</span>
           </p>
-          {isHost && (
-            <button
-              onClick={resetGame}
-              className="px-6 py-3 bg-green-500 text-white rounded-lg font-semibold hover:bg-green-600"
-            >
-              Play Again
-            </button>
-          )}
         </motion.div>
       )}
     </div>

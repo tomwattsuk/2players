@@ -1,8 +1,7 @@
-
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuthStore } from '../stores/useAuthStore';
 import GameArea from './GameArea';
-import { Users, MessageSquare, Trophy, Crown } from 'lucide-react';
+import { Users, MessageSquare, Trophy } from 'lucide-react';
 
 const PlayNow: React.FC = () => {
   const { user } = useAuthStore();

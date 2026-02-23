@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
-import { doc, getDoc, setDoc, updateDoc } from 'firebase/firestore';
-import { db } from '../lib/firebase';
+import { supabase } from '../lib/supabase';
 import type { UserProfile, UserStats } from '../types/user';
 import { useAuthStore } from '../stores/useAuthStore';
 
@@ -8,7 +7,7 @@ const DEFAULT_STATS: UserStats = {
   wins: 0,
   losses: 0,
   draws: 0,
-  rating: 1200, // Starting ELO rating
+  rating: 1200,
   gamesPlayed: 0,
   lastPlayed: new Date()
 };
@@ -29,11 +28,25 @@ export function useProfile() {
     const fetchProfile = async () => {
       try {
         setLoading(true);
-        const docRef = doc(db, 'users', user.uid);
-        const docSnap = await getDoc(docRef);
+        const { data, error: fetchError } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', user.uid)
+          .single();
 
-        if (docSnap.exists()) {
-          setProfile(docSnap.data() as UserProfile);
+        if (fetchError) throw fetchError;
+
+        if (data) {
+          setProfile({
+            uid: data.id,
+            displayName: data.username || 'Anonymous',
+            email: data.email || '',
+            photoURL: data.avatar_url,
+            stats: DEFAULT_STATS,
+            country: null,
+            createdAt: new Date(data.created_at),
+            updatedAt: new Date()
+          });
         } else {
           // Create new profile
           const newProfile: UserProfile = {
@@ -47,7 +60,16 @@ export function useProfile() {
             updatedAt: new Date()
           };
 
-          await setDoc(docRef, newProfile);
+          const { error: insertError } = await supabase
+            .from('profiles')
+            .insert({
+              id: user.uid,
+              username: user.displayName,
+              email: user.email,
+              avatar_url: user.photoURL
+            });
+
+          if (insertError) throw insertError;
           setProfile(newProfile);
         }
       } catch (err) {
@@ -64,11 +86,16 @@ export function useProfile() {
     if (!user || !profile) return;
 
     try {
-      const docRef = doc(db, 'users', user.uid);
-      await updateDoc(docRef, {
-        ...updates,
-        updatedAt: new Date()
-      });
+      const updateData: Record<string, unknown> = {};
+      if (updates.displayName) updateData.username = updates.displayName;
+      if (updates.photoURL) updateData.avatar_url = updates.photoURL;
+
+      const { error: updateError } = await supabase
+        .from('profiles')
+        .update(updateData)
+        .eq('id', user.uid);
+
+      if (updateError) throw updateError;
 
       setProfile(prev => prev ? { ...prev, ...updates } : null);
     } catch (err) {

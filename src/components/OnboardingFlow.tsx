@@ -1,13 +1,11 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { User } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { useAuthStore } from '../stores/useAuthStore';
 import { useNavigate } from 'react-router-dom';
 
 export default function OnboardingFlow() {
   const [username, setUsername] = useState('');
   const [error, setError] = useState('');
-  const { updateProfile } = useAuthStore();
   const navigate = useNavigate();
 
   const validateUsername = (value: string) => {

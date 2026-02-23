@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { useWebSocket } from './hooks/useWebSocket';
+import React from 'react';
+import { useOnlinePlayers } from './hooks/useOnlinePlayers';
 import { useAuthStore } from './stores/useAuthStore';
 import GameArea from './components/GameArea';
 import Navbar from './components/Navbar';
@@ -10,7 +10,7 @@ import OnboardingFlow from './components/OnboardingFlow';
 
 
 const App: React.FC = () => {
-  const { onlinePlayers, isConnected } = useWebSocket();
+  const { onlinePlayers, isConnected } = useOnlinePlayers();
   const { user, loading, initializeAuth } = useAuthStore();
 
   React.useEffect(() => {

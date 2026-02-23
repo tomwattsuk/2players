@@ -1,11 +1,11 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { TicTacToe, Battleships, Checkers, Snake, SpaceShooter, CoopPong, WordDuel } from './games';
 import { useMultiplayer } from '../hooks/useMultiplayer';
-import { Gamepad2, Loader2, AlertCircle, RefreshCw, Ship, Target, Crown } from 'lucide-react';
+import { Loader2, AlertCircle, RefreshCw } from 'lucide-react';
 import ChatBox from './ChatBox';
 import GameEndModal from './GameEndModal';
 
-type GameType = 'tictactoe' | 'checkers' | 'spaceshooter' | null;
+type GameType = 'tictactoe' | 'checkers' | 'spaceshooter' | 'battleships' | 'snake' | 'cooppong' | 'wordduel' | null;
 
 interface GameAreaProps {
   onGameEnd?: () => void;
@@ -29,8 +29,7 @@ export default function GameArea({ onGameEnd = () => {} }: GameAreaProps) {
     sendChat,
     sendFriendRequest,
     messages,
-    reconnect,
-    opponentLeft 
+    reconnect
   } = useMultiplayer();
 
   const handleGameEnd = (winner: string | null) => {
@@ -111,6 +110,8 @@ export default function GameArea({ onGameEnd = () => {} }: GameAreaProps) {
         {selectedGame === 'checkers' && <Checkers {...gameProps} />}
         {selectedGame === 'snake' && <Snake {...gameProps} />}
         {selectedGame === 'cooppong' && <CoopPong {...gameProps} />}
+        {selectedGame === 'wordduel' && <WordDuel {...gameProps} />}
+        {selectedGame === 'spaceshooter' && <SpaceShooter {...gameProps} />}
         {!isOffline && <ChatBox onSendMessage={sendChat} messages={messages} />}
         <GameEndModal
           show={showEndModal}
