@@ -3,6 +3,7 @@ import { Video, Mic, MessageSquare, Check, AlertCircle, User } from 'lucide-reac
 import { motion } from 'framer-motion';
 import { useGuestStore, type CommunicationType } from '../stores/useGuestStore';
 import { checkMediaPermissions } from '../hooks/useWebRTC';
+import { validateUsername } from '../utils/validateUsername';
 
 interface CommunicationSetupProps {
   onComplete: () => void;
@@ -39,18 +40,6 @@ export default function CommunicationSetup({ onComplete }: CommunicationSetupPro
     }
   ];
 
-  const validateUsername = (value: string) => {
-    if (value.length < 3) {
-      return 'Username must be at least 3 characters';
-    }
-    if (value.length > 20) {
-      return 'Username must be less than 20 characters';
-    }
-    if (!/^[a-zA-Z0-9_]+$/.test(value)) {
-      return 'Only letters, numbers, and underscores allowed';
-    }
-    return null;
-  };
 
   const handleUsernameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;

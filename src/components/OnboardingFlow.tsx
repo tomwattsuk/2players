@@ -2,29 +2,18 @@ import { useState } from 'react';
 import { User } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
+import { validateUsername } from '../utils/validateUsername';
 
 export default function OnboardingFlow() {
   const [username, setUsername] = useState('');
   const [error, setError] = useState('');
   const navigate = useNavigate();
 
-  const validateUsername = (value: string) => {
-    if (value.length < 3) {
-      return 'Username must be at least 3 characters long';
-    }
-    if (value.length > 20) {
-      return 'Username must be less than 20 characters';
-    }
-    if (!/^[a-zA-Z0-9_]+$/.test(value)) {
-      return 'Username can only contain letters, numbers, and underscores';
-    }
-    return '';
-  };
 
   const handleUsernameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     setUsername(value);
-    setError(validateUsername(value));
+    setError(validateUsername(value) ?? '');
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
