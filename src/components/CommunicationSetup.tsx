@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Video, Mic, MessageSquare, Check, AlertCircle, User } from 'lucide-react';
+import { Video, MessageSquare, Check, AlertCircle, User } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useGuestStore, type CommunicationType } from '../stores/useGuestStore';
 import { checkMediaPermissions } from '../hooks/useWebRTC';
@@ -20,21 +20,14 @@ export default function CommunicationSetup({ onComplete }: CommunicationSetupPro
     {
       type: 'video' as CommunicationType,
       icon: Video,
-      title: 'Video Chat',
+      title: 'Video & Mic',
       description: 'See and hear your opponent with webcam and microphone',
       color: 'pink'
     },
     {
-      type: 'audio' as CommunicationType,
-      icon: Mic,
-      title: 'Voice Chat',
-      description: 'Talk to your opponent using your microphone',
-      color: 'violet'
-    },
-    {
       type: 'text' as CommunicationType,
       icon: MessageSquare,
-      title: 'Text Only',
+      title: 'Text',
       description: 'Chat with your opponent using text messages',
       color: 'blue'
     }
@@ -192,7 +185,7 @@ export default function CommunicationSetup({ onComplete }: CommunicationSetupPro
 
         {selectedType && selectedType !== 'text' && (
           <p className="text-center text-sm text-gray-500 mt-4">
-            Your browser will ask for {selectedType === 'video' ? 'camera and microphone' : 'microphone'} access
+            Your browser will ask for camera and microphone access
           </p>
         )}
       </motion.div>
