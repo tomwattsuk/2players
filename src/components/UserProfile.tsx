@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useAuthStore } from '../stores/useAuthStore';
-import { supabase } from '../lib/supabase';
+import { database, ref, get } from '../lib/firebase';
 import { User, Mail, Calendar, Trophy, Users } from 'lucide-react';
 
 interface GameStats {
@@ -35,23 +35,17 @@ export default function UserProfile() {
 
   const fetchGameStats = async () => {
     if (!user) return;
-    
     try {
-      const { data, error } = await supabase
-        .from('game_results')
-        .select('winner_id, is_draw')
-        .or(`player1_id.eq.${user.uid},player2_id.eq.${user.uid}`);
-
-      if (error) throw error;
-
-      const stats = {
-        total_games: data.length,
-        wins: data.filter(game => game.winner_id === user.uid).length,
-        draws: data.filter(game => game.is_draw).length,
-        losses: data.filter(game => game.winner_id && game.winner_id !== user.uid).length
-      };
-
-      setGameStats(stats);
+      const snapshot = await get(ref(database, 'game_results'));
+      if (!snapshot.exists()) return;
+      const allResults = Object.values(snapshot.val()) as any[];
+      const mine = allResults.filter(g => g.player1Id === user.uid || g.player2Id === user.uid);
+      setGameStats({
+        total_games: mine.length,
+        wins: mine.filter(g => g.winnerId === user.uid).length,
+        draws: mine.filter(g => g.isDraw).length,
+        losses: mine.filter(g => g.winnerId && g.winnerId !== user.uid && !g.isDraw).length,
+      });
     } catch (error) {
       console.error('Error fetching game stats:', error);
     }
@@ -59,18 +53,17 @@ export default function UserProfile() {
 
   const fetchFriends = async () => {
     if (!user) return;
-
     try {
-      const { data, error } = await supabase
-        .from('friendships')
-        .select(`
-          profiles!friendships_friend_id_fkey(username, avatar_url)
-        `)
-        .eq('user_id', user.uid)
-        .eq('status', 'accepted');
-
-      if (error) throw error;
-      setFriends(data || []);
+      const snapshot = await get(ref(database, `friendships/${user.uid}/friends`));
+      if (!snapshot.exists()) { setFriends([]); return; }
+      const friendUids = Object.keys(snapshot.val());
+      const profiles = await Promise.all(
+        friendUids.map(async uid => {
+          const s = await get(ref(database, `profiles/${uid}`));
+          return s.exists() ? { uid, ...s.val() } : null;
+        })
+      );
+      setFriends(profiles.filter(Boolean));
     } catch (error) {
       console.error('Error fetching friends:', error);
     }
@@ -78,13 +71,9 @@ export default function UserProfile() {
 
   const handleSave = async () => {
     if (!username.trim()) return;
-    
     setLoading(true);
     try {
-      await updateProfile({
-        username: username.trim(),
-        allowMessages
-      });
+      await updateProfile({ username: username.trim(), allowMessages });
       setIsEditing(false);
     } catch (error) {
       console.error('Error updating profile:', error);
@@ -111,14 +100,12 @@ export default function UserProfile() {
           <div className="w-24 h-24 bg-gradient-to-br from-pink-500 to-violet-500 rounded-full flex items-center justify-center">
             <User className="w-12 h-12 text-white" />
           </div>
-          
+
           <div className="flex-1">
             {isEditing ? (
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-1">
-                    Username
-                  </label>
+                  <label className="block text-sm font-medium text-gray-300 mb-1">Username</label>
                   <input
                     type="text"
                     value={username}
@@ -126,7 +113,6 @@ export default function UserProfile() {
                     className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-pink-500"
                   />
                 </div>
-                
                 <div className="flex items-center gap-2">
                   <input
                     type="checkbox"
@@ -139,7 +125,6 @@ export default function UserProfile() {
                     Allow messages from other players
                   </label>
                 </div>
-                
                 <div className="flex gap-3">
                   <button
                     onClick={handleSave}
@@ -167,7 +152,6 @@ export default function UserProfile() {
                     Edit Profile
                   </button>
                 </div>
-                
                 <div className="flex items-center gap-4 text-gray-400 mb-4">
                   <div className="flex items-center gap-1">
                     <Mail className="w-4 h-4" />
@@ -190,7 +174,6 @@ export default function UserProfile() {
             <Trophy className="w-5 h-5 text-yellow-500" />
             Game Statistics
           </h2>
-          
           <div className="grid grid-cols-2 gap-4">
             <div className="text-center">
               <div className="text-2xl font-bold text-pink-500">{gameStats.total_games}</div>
@@ -209,7 +192,6 @@ export default function UserProfile() {
               <div className="text-sm text-gray-400">Losses</div>
             </div>
           </div>
-          
           {gameStats.total_games > 0 && (
             <div className="mt-4 pt-4 border-t border-white/10">
               <div className="text-sm text-gray-400">Win Rate</div>
@@ -225,15 +207,14 @@ export default function UserProfile() {
             <Users className="w-5 h-5 text-blue-500" />
             Friends ({friends.length})
           </h2>
-          
           {friends.length > 0 ? (
             <div className="space-y-2">
-              {friends.slice(0, 5).map((friendship, index) => (
+              {friends.slice(0, 5).map((friend, index) => (
                 <div key={index} className="flex items-center gap-3 p-2 bg-white/5 rounded-lg">
                   <div className="w-8 h-8 bg-gradient-to-br from-pink-500 to-violet-500 rounded-full flex items-center justify-center">
                     <User className="w-4 h-4 text-white" />
                   </div>
-                  <span className="text-sm">{friendship.profiles?.username}</span>
+                  <span className="text-sm">{friend.username}</span>
                 </div>
               ))}
               {friends.length > 5 && (

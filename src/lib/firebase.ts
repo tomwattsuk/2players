@@ -1,5 +1,18 @@
 import { initializeApp } from 'firebase/app';
-import { getDatabase, ref, set, get, push, onValue, off, remove, update, onDisconnect, serverTimestamp } from 'firebase/database';
+import {
+  getDatabase, ref, set, get, push, onValue, off,
+  remove, update, onDisconnect, serverTimestamp
+} from 'firebase/database';
+import {
+  getAuth,
+  signInWithEmailAndPassword,
+  createUserWithEmailAndPassword,
+  signInWithPopup,
+  TwitterAuthProvider,
+  FacebookAuthProvider,
+  signOut,
+  onAuthStateChanged,
+} from 'firebase/auth';
 
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
@@ -11,20 +24,19 @@ const firebaseConfig = {
   appId: import.meta.env.VITE_FIREBASE_APP_ID
 };
 
-// Initialize Firebase
 const app = initializeApp(firebaseConfig);
 const database = getDatabase(app);
+const auth = getAuth(app);
 
 export {
   database,
-  ref,
-  set,
-  get,
-  push,
-  onValue,
-  off,
-  remove,
-  update,
-  onDisconnect,
-  serverTimestamp
+  auth,
+  ref, set, get, push, onValue, off, remove, update, onDisconnect, serverTimestamp,
+  signInWithEmailAndPassword,
+  createUserWithEmailAndPassword,
+  signInWithPopup,
+  TwitterAuthProvider,
+  FacebookAuthProvider,
+  signOut,
+  onAuthStateChanged,
 };

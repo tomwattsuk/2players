@@ -1,5 +1,24 @@
 import { create } from 'zustand';
-import { supabase, type Profile } from '../lib/supabase';
+import {
+  auth, database,
+  ref, set as dbSet, get, push, update,
+  signInWithEmailAndPassword,
+  createUserWithEmailAndPassword,
+  signInWithPopup,
+  TwitterAuthProvider,
+  FacebookAuthProvider,
+  signOut as firebaseSignOut,
+  onAuthStateChanged,
+} from '../lib/firebase';
+
+export interface Profile {
+  id: string;
+  username: string;
+  email: string;
+  avatar_url?: string;
+  created_at: string;
+  allow_messages: boolean;
+}
 
 interface User {
   uid: string;
@@ -35,6 +54,34 @@ interface AuthState {
   initializeAuth: () => Promise<void>;
 }
 
+async function fetchProfileFromDb(userId: string): Promise<Profile | null> {
+  try {
+    const snapshot = await get(ref(database, `profiles/${userId}`));
+    if (!snapshot.exists()) return null;
+    const data = snapshot.val();
+    return {
+      id: userId,
+      username: data.username || '',
+      email: data.email || '',
+      avatar_url: data.avatarUrl,
+      created_at: data.createdAt || new Date().toISOString(),
+      allow_messages: data.allowMessages ?? true,
+    };
+  } catch {
+    return null;
+  }
+}
+
+async function createProfileInDb(uid: string, username: string, email: string, photoURL?: string | null) {
+  await dbSet(ref(database, `profiles/${uid}`), {
+    username,
+    email,
+    avatarUrl: photoURL || null,
+    allowMessages: true,
+    createdAt: new Date().toISOString(),
+  });
+}
+
 export const useAuthStore = create<AuthState>((set, get) => ({
   user: null,
   loading: false,
@@ -43,36 +90,51 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
   initializeAuth: async () => {
     set({ loading: true });
-    try {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session?.user) {
-        const profile = await get().getUserProfile(session.user.id);
-        set({
-          user: {
-            uid: session.user.id,
-            email: session.user.email ?? null,
-            displayName: profile?.username || session.user.email?.split('@')[0] || null,
-            photoURL: profile?.avatar_url || null,
-            username: profile?.username,
-            allowMessages: profile?.allow_messages
-          },
-          profile
-        });
-      }
-    } catch (error) {
-      console.error('Error initializing auth:', error);
-    } finally {
-      set({ loading: false });
-    }
+    return new Promise<void>((resolve) => {
+      onAuthStateChanged(auth, async (firebaseUser) => {
+        if (firebaseUser) {
+          const profile = await fetchProfileFromDb(firebaseUser.uid);
+          set({
+            user: {
+              uid: firebaseUser.uid,
+              email: firebaseUser.email,
+              displayName: profile?.username || firebaseUser.displayName || firebaseUser.email?.split('@')[0] || null,
+              photoURL: profile?.avatar_url || firebaseUser.photoURL || null,
+              username: profile?.username,
+              allowMessages: profile?.allow_messages,
+            },
+            profile,
+            loading: false,
+          });
+        } else {
+          set({ user: null, profile: null, loading: false });
+        }
+        resolve();
+      });
+    });
   },
 
   signInWithTwitter: async () => {
     set({ loading: true, error: null });
     try {
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: 'twitter'
+      const result = await signInWithPopup(auth, new TwitterAuthProvider());
+      let profile = await fetchProfileFromDb(result.user.uid);
+      if (!profile) {
+        const username = result.user.displayName || result.user.email?.split('@')[0] || 'Player';
+        await createProfileInDb(result.user.uid, username, result.user.email || '', result.user.photoURL);
+        profile = await fetchProfileFromDb(result.user.uid);
+      }
+      set({
+        user: {
+          uid: result.user.uid,
+          email: result.user.email,
+          displayName: profile?.username || result.user.displayName,
+          photoURL: profile?.avatar_url || result.user.photoURL || null,
+          username: profile?.username,
+          allowMessages: profile?.allow_messages,
+        },
+        profile,
       });
-      if (error) throw error;
     } catch (error) {
       set({ error: (error as Error).message || 'Failed to sign in with Twitter' });
       throw error;
@@ -84,10 +146,24 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   signInWithFacebook: async () => {
     set({ loading: true, error: null });
     try {
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: 'facebook'
+      const result = await signInWithPopup(auth, new FacebookAuthProvider());
+      let profile = await fetchProfileFromDb(result.user.uid);
+      if (!profile) {
+        const username = result.user.displayName || result.user.email?.split('@')[0] || 'Player';
+        await createProfileInDb(result.user.uid, username, result.user.email || '', result.user.photoURL);
+        profile = await fetchProfileFromDb(result.user.uid);
+      }
+      set({
+        user: {
+          uid: result.user.uid,
+          email: result.user.email,
+          displayName: profile?.username || result.user.displayName,
+          photoURL: profile?.avatar_url || result.user.photoURL || null,
+          username: profile?.username,
+          allowMessages: profile?.allow_messages,
+        },
+        profile,
       });
-      if (error) throw error;
     } catch (error) {
       set({ error: (error as Error).message || 'Failed to sign in with Facebook' });
       throw error;
@@ -99,27 +175,19 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   signInWithEmail: async (email: string, password: string) => {
     set({ loading: true, error: null });
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password
+      const result = await signInWithEmailAndPassword(auth, email, password);
+      const profile = await fetchProfileFromDb(result.user.uid);
+      set({
+        user: {
+          uid: result.user.uid,
+          email: result.user.email,
+          displayName: profile?.username || result.user.email?.split('@')[0] || null,
+          photoURL: profile?.avatar_url || null,
+          username: profile?.username,
+          allowMessages: profile?.allow_messages,
+        },
+        profile,
       });
-      
-      if (error) throw error;
-      
-      if (data.user) {
-        const profile = await get().getUserProfile(data.user.id);
-        set({
-          user: {
-            uid: data.user.id,
-            email: data.user.email ?? null,
-            displayName: profile?.username || data.user.email?.split('@')[0] || null,
-            photoURL: profile?.avatar_url || null,
-            username: profile?.username,
-            allowMessages: profile?.allow_messages
-          },
-          profile
-        });
-      }
     } catch (error) {
       set({ error: (error as Error).message });
       throw error;
@@ -134,43 +202,26 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       if (!/^[a-zA-Z0-9_]{6,}$/.test(username)) {
         throw new Error('Username must be at least 6 alphanumeric characters (underscores allowed)');
       }
-
-      const { data, error } = await supabase.auth.signUp({
+      const result = await createUserWithEmailAndPassword(auth, email, password);
+      await createProfileInDb(result.user.uid, username, email);
+      const profile: Profile = {
+        id: result.user.uid,
+        username,
         email,
-        password,
-        options: {
-          data: {
-            username
-          }
-        }
+        created_at: new Date().toISOString(),
+        allow_messages: true,
+      };
+      set({
+        user: {
+          uid: result.user.uid,
+          email: result.user.email,
+          displayName: username,
+          photoURL: null,
+          username,
+          allowMessages: true,
+        },
+        profile,
       });
-
-      if (error) throw error;
-
-      if (data.user) {
-        // Create profile
-        const { error: profileError } = await supabase
-          .from('profiles')
-          .insert({
-            id: data.user.id,
-            username,
-            email,
-            allow_messages: true
-          });
-
-        if (profileError) throw profileError;
-
-        set({
-          user: {
-            uid: data.user.id,
-            email: data.user.email ?? null,
-            displayName: username,
-            photoURL: null,
-            username,
-            allowMessages: true
-          }
-        });
-      }
     } catch (error) {
       set({ error: (error as Error).message });
       throw error;
@@ -182,8 +233,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   signOut: async () => {
     set({ loading: true });
     try {
-      const { error } = await supabase.auth.signOut();
-      if (error) throw error;
+      await firebaseSignOut(auth);
       set({ user: null, profile: null, error: null });
     } catch (error) {
       set({ error: (error as Error).message });
@@ -197,26 +247,24 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     try {
       const { user } = get();
       if (!user) throw new Error('No user logged in');
-
-      const updateData: any = {};
+      const updateData: Record<string, unknown> = {};
       if (updates.username) updateData.username = updates.username;
-      if (updates.allowMessages !== undefined) updateData.allow_messages = updates.allowMessages;
-      if (updates.profilePicture) updateData.avatar_url = updates.profilePicture;
-
-      const { error } = await supabase
-        .from('profiles')
-        .update(updateData)
-        .eq('id', user.uid);
-
-      if (error) throw error;
-
+      if (updates.allowMessages !== undefined) updateData.allowMessages = updates.allowMessages;
+      if (updates.profilePicture) updateData.avatarUrl = updates.profilePicture;
+      await update(ref(database, `profiles/${user.uid}`), updateData);
       set(state => ({
-        user: state.user ? { 
-          ...state.user, 
+        user: state.user ? {
+          ...state.user,
           username: updates.username || state.user.username,
           allowMessages: updates.allowMessages !== undefined ? updates.allowMessages : state.user.allowMessages,
-          photoURL: updates.profilePicture || state.user.photoURL
-        } : null
+          photoURL: updates.profilePicture || state.user.photoURL,
+        } : null,
+        profile: state.profile ? {
+          ...state.profile,
+          username: updates.username || state.profile.username,
+          allow_messages: updates.allowMessages !== undefined ? updates.allowMessages : state.profile.allow_messages,
+          avatar_url: updates.profilePicture || state.profile.avatar_url,
+        } : null,
       }));
     } catch (error) {
       set({ error: (error as Error).message });
@@ -227,55 +275,32 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   },
 
   getUserProfile: async (userId: string): Promise<Profile | null> => {
-    try {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', userId)
-        .single();
-
-      if (error) throw error;
-      return data;
-    } catch (error) {
-      console.error('Error fetching user profile:', error);
-      return null;
-    }
+    return fetchProfileFromDb(userId);
   },
 
   listFriendRequests: async (userId: string) => {
     try {
-      const { data, error } = await supabase
-        .from('friendships')
-        .select(`
-          id,
-          user_id,
-          friend_id,
-          status,
-          created_at,
-          profiles!friendships_user_id_fkey(username, avatar_url)
-        `)
-        .eq('friend_id', userId)
-        .eq('status', 'pending');
-
-      if (error) throw error;
-      return data || [];
-    } catch (error) {
-      console.error('Error fetching friend requests:', error);
+      const snapshot = await get(ref(database, `friendships/${userId}/incoming`));
+      if (!snapshot.exists()) return [];
+      const requests: any[] = [];
+      snapshot.forEach((child) => {
+        if (child.val().status === 'pending') {
+          requests.push({ id: child.key, ...child.val() });
+        }
+      });
+      return requests;
+    } catch {
       return [];
     }
   },
 
   sendFriendRequest: async (fromUserId: string, toUserId: string) => {
     try {
-      const { error } = await supabase
-        .from('friendships')
-        .insert({
-          user_id: fromUserId,
-          friend_id: toUserId,
-          status: 'pending'
-        });
-
-      if (error) throw error;
+      await dbSet(ref(database, `friendships/${toUserId}/incoming/${fromUserId}`), {
+        status: 'pending',
+        from: fromUserId,
+        createdAt: new Date().toISOString(),
+      });
     } catch (error) {
       console.error('Error sending friend request:', error);
       throw error;
@@ -284,12 +309,11 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
   acceptFriendRequest: async (requestId: string) => {
     try {
-      const { error } = await supabase
-        .from('friendships')
-        .update({ status: 'accepted' })
-        .eq('id', requestId);
-
-      if (error) throw error;
+      const { user } = get();
+      if (!user) return;
+      await update(ref(database, `friendships/${user.uid}/incoming/${requestId}`), { status: 'accepted' });
+      await dbSet(ref(database, `friendships/${user.uid}/friends/${requestId}`), true);
+      await dbSet(ref(database, `friendships/${requestId}/friends/${user.uid}`), true);
     } catch (error) {
       console.error('Error accepting friend request:', error);
       throw error;
@@ -298,42 +322,17 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
   storeGameResult: async (player1Id: string, player2Id: string, gameType: string, winnerId?: string, isDraw = false) => {
     try {
-      const { error } = await supabase
-        .from('game_results')
-        .insert({
-          player1_id: player1Id,
-          player2_id: player2Id,
-          game_type: gameType,
-          winner_id: winnerId,
-          is_draw: isDraw
-        });
-
-      if (error) throw error;
+      await push(ref(database, 'game_results'), {
+        player1Id,
+        player2Id,
+        gameType,
+        winnerId: winnerId || null,
+        isDraw,
+        createdAt: new Date().toISOString(),
+      });
     } catch (error) {
       console.error('Error storing game result:', error);
       throw error;
     }
-  }
+  },
 }));
-
-// Listen to auth changes
-supabase.auth.onAuthStateChange(async (event, session) => {
-  const { getUserProfile } = useAuthStore.getState();
-  
-  if (event === 'SIGNED_IN' && session?.user) {
-    const profile = await getUserProfile(session.user.id);
-    useAuthStore.setState({
-      user: {
-        uid: session.user.id,
-        email: session.user.email ?? null,
-        displayName: profile?.username || session.user.email?.split('@')[0] || null,
-        photoURL: profile?.avatar_url || null,
-        username: profile?.username,
-        allowMessages: profile?.allow_messages
-      },
-      profile
-    });
-  } else if (event === 'SIGNED_OUT') {
-    useAuthStore.setState({ user: null, profile: null });
-  }
-});
