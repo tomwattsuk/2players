@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { Send, Trophy, Clock, User } from 'lucide-react';
 
@@ -30,6 +30,9 @@ const WORDS = [
 ];
 
 const WordDuel = ({ onGameEnd, isHost, sendGameState }: WordDuelProps) => {
+  const onGameEndRef = useRef(onGameEnd);
+  useEffect(() => { onGameEndRef.current = onGameEnd; }, [onGameEnd]);
+
   const [guess, setGuess] = useState('');
   const [gameState, setGameState] = useState<WordDuelState>({
     word: '',
@@ -64,9 +67,9 @@ const WordDuel = ({ onGameEnd, isHost, sendGameState }: WordDuelProps) => {
       if (state.type === 'wordduel') {
         setGameState(state.data);
         if (state.data.winner && state.data.winner !== 'draw') {
-          setTimeout(() => onGameEnd(state.data.winner), 1500);
+          setTimeout(() => onGameEndRef.current(state.data.winner), 1500);
         } else if (state.data.winner === 'draw') {
-          setTimeout(() => onGameEnd(null), 1500);
+          setTimeout(() => onGameEndRef.current(null), 1500);
         }
       }
     };
@@ -75,7 +78,7 @@ const WordDuel = ({ onGameEnd, isHost, sendGameState }: WordDuelProps) => {
     return () => {
       window.removeEventListener('game_state', handleGameState as EventListener);
     };
-  }, [onGameEnd]);
+  }, []);
 
   // Timer
   useEffect(() => {
@@ -252,7 +255,7 @@ const WordDuel = ({ onGameEnd, isHost, sendGameState }: WordDuelProps) => {
               type="text"
               value={guess}
               onChange={(e) => setGuess(e.target.value.slice(0, 5).toUpperCase())}
-              onKeyPress={handleKeyPress}
+              onKeyDown={handleKeyPress}
               className="flex-1 px-4 py-3 bg-slate-700 border border-slate-600 rounded-lg text-white text-center text-lg font-mono tracking-widest"
               placeholder="GUESS"
               maxLength={5}
