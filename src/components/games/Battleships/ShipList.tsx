@@ -20,14 +20,25 @@ const SHIP_ICONS = {
   Destroyer: Anchor,
 };
 
-const ShipList: React.FC<ShipListProps> = ({ 
-  placedShips, 
+const ShipList: React.FC<ShipListProps> = ({
+  placedShips,
   selectedShip,
   onSelectShip,
   onRotateShip,
   isVertical,
   isLocked
 }) => {
+  const dragImageRef = React.useRef<HTMLDivElement | null>(null);
+
+  React.useEffect(() => {
+    return () => {
+      if (dragImageRef.current && document.body.contains(dragImageRef.current)) {
+        document.body.removeChild(dragImageRef.current);
+        dragImageRef.current = null;
+      }
+    };
+  }, []);
+
   const handleDragStart = (e: React.DragEvent, ship: typeof SHIPS[number]) => {
     if (isLocked) {
       e.preventDefault();
@@ -58,10 +69,14 @@ const ShipList: React.FC<ShipListProps> = ({
     }
 
     document.body.appendChild(dragImage);
+    dragImageRef.current = dragImage;
     e.dataTransfer.setDragImage(dragImage, 20, isVertical ? 20 : ship.size * 16);
-    
+
     requestAnimationFrame(() => {
-      document.body.removeChild(dragImage);
+      if (document.body.contains(dragImage)) {
+        document.body.removeChild(dragImage);
+      }
+      if (dragImageRef.current === dragImage) dragImageRef.current = null;
     });
   };
 

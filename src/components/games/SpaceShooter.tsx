@@ -1,5 +1,4 @@
 import { useEffect, useRef, useState } from 'react';
-import { useInterval } from '../../hooks/useInterval';
 
 interface SpaceShooterProps {
   onGameEnd: (winner: string | null) => void;
@@ -17,207 +16,11 @@ interface GameObject {
   speed?: number;
 }
 
-interface GameState {
-  player: GameObject;
-  opponent: GameObject;
-  bullets: GameObject[];
-  enemies: GameObject[];
-  score: number;
-}
-
 const CANVAS_WIDTH = 600;
-const CANVAS_HEIGHT = 800;
-
-const SpaceShooter = ({ onGameEnd, isHost, sendGameState }: SpaceShooterProps) => {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  const [gameState, setGameState] = useState<GameState>({
-    player: {
-      x: CANVAS_WIDTH / 2,
-      y: isHost ? CANVAS_HEIGHT - 50 : 50,
-      width: 40,
-      height: 40,
-      speed: 5
-    },
-    opponent: {
-      x: CANVAS_WIDTH / 2,
-      y: isHost ? 50 : CANVAS_HEIGHT - 50,
-      width: 40,
-      height: 40
-    },
-    bullets: [],
-    enemies: [],
-    score: 0
-  });
-
-  const [keys, setKeys] = useState<{ [key: string]: boolean }>({});
-
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      setKeys(prev => ({ ...prev, [e.key]: true }));
-    };
-
-    const handleKeyUp = (e: KeyboardEvent) => {
-      setKeys(prev => ({ ...prev, [e.key]: false }));
-    };
-
-    window.addEventListener('keydown', handleKeyDown);
-    window.addEventListener('keyup', handleKeyUp);
-
-    return () => {
-      window.removeEventListener('keydown', handleKeyDown);
-      window.removeEventListener('keyup', handleKeyUp);
-    };
-  }, []);
-
-  useInterval(() => {
-    if (isHost) {
-      // Spawn enemies periodically
-      if (Math.random() < 0.05) {
-        const newEnemy: GameObject = {
-          x: Math.random() * (CANVAS_WIDTH - 30),
-          y: 0,
-          width: 30,
-          height: 30,
-          speed: 2
-        };
-        setGameState(prev => ({
-          ...prev,
-          enemies: [...prev.enemies, newEnemy]
-        }));
-      }
-    }
-  }, 1000);
-
-  useInterval(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-
-    // Update player position based on keyboard input
-    const newState = { ...gameState };
-    
-    if (keys.ArrowLeft && newState.player.x > 0) {
-      newState.player.x -= newState.player.speed!;
-    }
-    if (keys.ArrowRight && newState.player.x < CANVAS_WIDTH - newState.player.width) {
-      newState.player.x += newState.player.speed!;
-    }
-    if (keys[' ']) {
-      // Shoot bullets
-      if (gameState.bullets.length < 5) {
-        const bullet: GameObject = {
-          x: newState.player.x + newState.player.width / 2 - 2,
-          y: isHost ? newState.player.y - 10 : newState.player.y + newState.player.height,
-          width: 4,
-          height: 10,
-          speed: 7
-        };
-        newState.bullets = [...newState.bullets, bullet];
-      }
-    }
-
-    // Update bullets
-    newState.bullets = newState.bullets
-      .map(bullet => ({
-        ...bullet,
-        y: isHost ? bullet.y - bullet.speed! : bullet.y + bullet.speed!
-      }))
-      .filter(bullet => bullet.y > 0 && bullet.y < CANVAS_HEIGHT);
-
-    // Update enemies
-    if (isHost) {
-      newState.enemies = newState.enemies
-        .map(enemy => ({
-          ...enemy,
-          y: enemy.y + enemy.speed!
-        }))
-        .filter(enemy => {
-          if (enemy.y > CANVAS_HEIGHT) {
-            onGameEnd(null);
-            return false;
-          }
-          return true;
-        });
-
-      // Check collisions
-      newState.enemies = newState.enemies.filter(enemy => {
-        const hitByBullet = newState.bullets.some(bullet => {
-          const hit = checkCollision(bullet, enemy);
-          if (hit) {
-            newState.score += 10;
-          }
-          return hit;
-        });
-        return !hitByBullet;
-      });
-
-      newState.bullets = newState.bullets.filter(bullet => {
-        return !newState.enemies.some(enemy => checkCollision(bullet, enemy));
-      });
-    }
-
-    setGameState(newState);
-    sendGameState({
-      type: 'spaceshooter',
-      data: newState
-    });
-
-    // Render game
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-
-    // Clear canvas
-    ctx.fillStyle = '#000';
-    ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
-
-    // Draw player
-    ctx.fillStyle = '#00ff00';
-    ctx.fillRect(
-      newState.player.x,
-      newState.player.y,
-      newState.player.width,
-      newState.player.height
-    );
-
-    // Draw opponent
-    ctx.fillStyle = '#ff0000';
-    ctx.fillRect(
-      newState.opponent.x,
-      newState.opponent.y,
-      newState.opponent.width,
-      newState.opponent.height
-    );
-
-    // Draw bullets
-    ctx.fillStyle = '#fff';
-    newState.bullets.forEach(bullet => {
-      ctx.fillRect(bullet.x, bullet.y, bullet.width, bullet.height);
-    });
-
-    // Draw enemies
-    ctx.fillStyle = '#ff00ff';
-    newState.enemies.forEach(enemy => {
-      ctx.fillRect(enemy.x, enemy.y, enemy.width, enemy.height);
-    });
-
-  }, 1000 / 60); // 60 FPS
-
-  return (
-    <div className="flex flex-col items-center">
-      <div className="mb-4">
-        <span className="text-xl font-bold">Score: {gameState.score}</span>
-      </div>
-      <canvas
-        ref={canvasRef}
-        width={CANVAS_WIDTH}
-        height={CANVAS_HEIGHT}
-        className="border border-gray-700 rounded-lg"
-      />
-      <div className="mt-4 text-sm text-gray-400">
-        Use ← → to move, SPACE to shoot
-      </div>
-    </div>
-  );
-};
+const CANVAS_HEIGHT = 600;
+const PLAYER_SPEED = 5;
+const BULLET_SPEED = 8;
+const ENEMY_SPEED = 2;
 
 function checkCollision(a: GameObject, b: GameObject): boolean {
   return (
@@ -228,4 +31,286 @@ function checkCollision(a: GameObject, b: GameObject): boolean {
   );
 }
 
-export default SpaceShooter;
+export default function SpaceShooter({ onGameEnd, isHost, sendGameState }: SpaceShooterProps) {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const [score, setScore] = useState(0);
+  const gameActiveRef = useRef(true);
+
+  const onGameEndRef = useRef(onGameEnd);
+  const sendGameStateRef = useRef(sendGameState);
+  useEffect(() => { onGameEndRef.current = onGameEnd; }, [onGameEnd]);
+  useEffect(() => { sendGameStateRef.current = sendGameState; }, [sendGameState]);
+
+  // All game physics in refs
+  const playerRef = useRef<GameObject>({
+    x: CANVAS_WIDTH / 2 - 20,
+    y: CANVAS_HEIGHT - 60,
+    width: 40,
+    height: 40,
+    speed: PLAYER_SPEED,
+  });
+  const bulletsRef = useRef<GameObject[]>([]);
+  const enemiesRef = useRef<GameObject[]>([]);
+  const scoreRef = useRef(0);
+  const keysRef = useRef<Record<string, boolean>>({});
+  const lastShotRef = useRef(0);
+
+  // Opponent data (received from the other player)
+  const opponentXRef = useRef(CANVAS_WIDTH / 2 - 20);
+  const opponentBulletsRef = useRef<GameObject[]>([]); // host receives guest bullets
+
+  // Listen for incoming game state from opponent
+  useEffect(() => {
+    const handleGameState = (e: CustomEvent) => {
+      const state = e.detail;
+      if (state.type !== 'spaceshooter') return;
+
+      // Update opponent ship position
+      if (typeof state.playerX === 'number') {
+        opponentXRef.current = state.playerX;
+      }
+
+      if (isHost) {
+        // Host receives guest's bullets to check against enemies
+        if (Array.isArray(state.bullets)) {
+          opponentBulletsRef.current = state.bullets;
+        }
+      } else {
+        // Guest receives enemy state from host
+        if (Array.isArray(state.enemies)) {
+          enemiesRef.current = state.enemies;
+        }
+        if (typeof state.score === 'number') {
+          scoreRef.current = state.score;
+          setScore(state.score);
+        }
+      }
+    };
+    window.addEventListener('game_state', handleGameState as EventListener);
+    return () => window.removeEventListener('game_state', handleGameState as EventListener);
+  }, [isHost]);
+
+  // Key handlers
+  useEffect(() => {
+    const down = (e: KeyboardEvent) => {
+      keysRef.current[e.key] = true;
+      e.preventDefault();
+    };
+    const up = (e: KeyboardEvent) => {
+      keysRef.current[e.key] = false;
+    };
+    window.addEventListener('keydown', down);
+    window.addEventListener('keyup', up);
+    return () => {
+      window.removeEventListener('keydown', down);
+      window.removeEventListener('keyup', up);
+    };
+  }, []);
+
+  // Main game loop
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    gameActiveRef.current = true;
+    let frameId: number;
+    let lastEnemySpawn = 0;
+    let lastSend = 0;
+
+    const loop = (timestamp: number) => {
+      if (!gameActiveRef.current) return;
+
+      const player = playerRef.current;
+      const keys = keysRef.current;
+
+      // Move player
+      if (keys['ArrowLeft'] && player.x > 0) player.x -= PLAYER_SPEED;
+      if (keys['ArrowRight'] && player.x < CANVAS_WIDTH - player.width) player.x += PLAYER_SPEED;
+
+      // Shoot
+      if (keys[' '] && timestamp - lastShotRef.current > 300) {
+        lastShotRef.current = timestamp;
+        if (bulletsRef.current.length < 5) {
+          bulletsRef.current.push({
+            x: player.x + player.width / 2 - 2,
+            y: player.y - 10,
+            width: 4,
+            height: 12,
+            speed: BULLET_SPEED,
+          });
+        }
+      }
+
+      // Move bullets upward
+      bulletsRef.current = bulletsRef.current
+        .map(b => ({ ...b, y: b.y - BULLET_SPEED }))
+        .filter(b => b.y > -20);
+
+      if (isHost) {
+        // Spawn enemies
+        if (timestamp - lastEnemySpawn > 1200) {
+          lastEnemySpawn = timestamp;
+          enemiesRef.current.push({
+            x: Math.random() * (CANVAS_WIDTH - 30),
+            y: -30,
+            width: 30,
+            height: 30,
+            speed: ENEMY_SPEED,
+          });
+        }
+
+        // Move enemies down
+        enemiesRef.current = enemiesRef.current.map(e => ({ ...e, y: e.y + ENEMY_SPEED }));
+
+        // Check if any enemy reached the bottom
+        if (enemiesRef.current.some(e => e.y > CANVAS_HEIGHT)) {
+          gameActiveRef.current = false;
+          onGameEndRef.current(null);
+          return;
+        }
+
+        // Check collisions: own bullets vs enemies
+        const ownHits = new Set<number>();
+        const ownBulletHits = new Set<number>();
+        bulletsRef.current.forEach((bullet, bi) => {
+          enemiesRef.current.forEach((enemy, ei) => {
+            if (checkCollision(bullet, enemy)) {
+              ownHits.add(ei);
+              ownBulletHits.add(bi);
+            }
+          });
+        });
+
+        // Check collisions: opponent (guest) bullets vs enemies
+        const guestBulletHitIndices = new Set<number>();
+        opponentBulletsRef.current.forEach((bullet, bi) => {
+          enemiesRef.current.forEach((enemy, ei) => {
+            if (checkCollision(bullet, enemy)) {
+              ownHits.add(ei);
+              guestBulletHitIndices.add(bi);
+            }
+          });
+        });
+
+        if (guestBulletHitIndices.size > 0) {
+          opponentBulletsRef.current = opponentBulletsRef.current.filter((_, i) => !guestBulletHitIndices.has(i));
+        }
+
+        if (ownHits.size > 0) {
+          scoreRef.current += ownHits.size * 10;
+          setScore(scoreRef.current);
+          enemiesRef.current = enemiesRef.current.filter((_, i) => !ownHits.has(i));
+          bulletsRef.current = bulletsRef.current.filter((_, i) => !ownBulletHits.has(i));
+        }
+
+        // Send authoritative state to guest
+        if (timestamp - lastSend > 50) {
+          lastSend = timestamp;
+          sendGameStateRef.current({
+            type: 'spaceshooter',
+            playerX: player.x,
+            bullets: bulletsRef.current,
+            enemies: enemiesRef.current,
+            score: scoreRef.current,
+          });
+        }
+      } else {
+        // Guest: send position + bullets to host every ~50ms
+        if (timestamp - lastSend > 50) {
+          lastSend = timestamp;
+          sendGameStateRef.current({
+            type: 'spaceshooter',
+            playerX: player.x,
+            bullets: bulletsRef.current,
+          });
+        }
+      }
+
+      // ---- Render ----
+      ctx.fillStyle = '#050510';
+      ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+
+      // Stars background
+      ctx.fillStyle = 'rgba(255,255,255,0.3)';
+      for (let i = 0; i < 40; i++) {
+        const sx = (i * 97 + timestamp * 0.005) % CANVAS_WIDTH;
+        const sy = (i * 137 + timestamp * 0.008) % CANVAS_HEIGHT;
+        ctx.fillRect(sx, sy, 1, 1);
+      }
+
+      // My ship (green triangle)
+      ctx.fillStyle = '#4ade80';
+      ctx.beginPath();
+      ctx.moveTo(player.x + player.width / 2, player.y);
+      ctx.lineTo(player.x, player.y + player.height);
+      ctx.lineTo(player.x + player.width, player.y + player.height);
+      ctx.closePath();
+      ctx.fill();
+
+      // Opponent ship (blue triangle)
+      const opX = opponentXRef.current;
+      ctx.fillStyle = '#60a5fa';
+      ctx.beginPath();
+      ctx.moveTo(opX + 20, 60);
+      ctx.lineTo(opX, 60 - 40);
+      ctx.lineTo(opX + 40, 60 - 40);
+      ctx.closePath();
+      ctx.fill();
+
+      // My bullets
+      ctx.fillStyle = '#facc15';
+      bulletsRef.current.forEach(b => {
+        ctx.fillRect(b.x, b.y, b.width, b.height);
+      });
+
+      // Enemies (red)
+      ctx.fillStyle = '#f87171';
+      enemiesRef.current.forEach(e => {
+        ctx.beginPath();
+        ctx.moveTo(e.x + e.width / 2, e.y + e.height);
+        ctx.lineTo(e.x, e.y);
+        ctx.lineTo(e.x + e.width, e.y);
+        ctx.closePath();
+        ctx.fill();
+      });
+
+      // Labels
+      ctx.fillStyle = 'rgba(255,255,255,0.5)';
+      ctx.font = '11px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText('You', player.x + player.width / 2, player.y - 6);
+      ctx.fillText('Opponent', opX + 20, 15);
+
+      frameId = requestAnimationFrame(loop);
+    };
+
+    frameId = requestAnimationFrame(loop);
+    return () => {
+      cancelAnimationFrame(frameId);
+      gameActiveRef.current = false;
+    };
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  return (
+    <div className="flex flex-col items-center">
+      <div className="mb-4 flex gap-6 items-center">
+        <span className="text-xl font-bold text-white">Score: {score}</span>
+        <span className="text-sm text-gray-400">← → to move · Space to shoot</span>
+      </div>
+      <canvas
+        ref={canvasRef}
+        width={CANVAS_WIDTH}
+        height={CANVAS_HEIGHT}
+        className="border border-gray-700 rounded-lg"
+        tabIndex={0}
+      />
+      <div className="mt-3 flex gap-4 text-sm text-gray-400">
+        <span><span className="text-green-400">■</span> You</span>
+        <span><span className="text-blue-400">■</span> Opponent</span>
+        <span><span className="text-red-400">■</span> Enemies</span>
+      </div>
+    </div>
+  );
+}

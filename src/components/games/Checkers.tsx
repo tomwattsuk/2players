@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Crown } from 'lucide-react';
 
 interface CheckersProps {
@@ -14,13 +14,17 @@ type Board = Piece[][];
 type Position = { row: number; col: number };
 
 const Checkers = ({ onGameEnd, isHost, sendGameState }: CheckersProps) => {
-  const [board, setBoard] = useState<Board>(initializeBoard());
+  const onGameEndRef = useRef(onGameEnd);
+  useEffect(() => { onGameEndRef.current = onGameEnd; }, [onGameEnd]);
+
+  const [board, setBoard] = useState<Board>(() => initializeBoard());
   const [isRedTurn, setIsRedTurn] = useState(true);
   const [validMoves, setValidMoves] = useState<Position[]>([]);
   const [mustJump, setMustJump] = useState(false);
   const [winner, setWinner] = useState<'red' | 'black' | null>(null);
   const [dragStart, setDragStart] = useState<Position | null>(null);
   const [selectedPiece, setSelectedPiece] = useState<Position | null>(null);
+  const [chainJumpPiece, setChainJumpPiece] = useState<Position | null>(null);
 
   const isMyTurn = isHost === isRedTurn;
 
@@ -32,16 +36,17 @@ const Checkers = ({ onGameEnd, isHost, sendGameState }: CheckersProps) => {
         setIsRedTurn(state.data.isRedTurn);
         setSelectedPiece(null);
         setValidMoves([]);
+        setChainJumpPiece(null);
         if (state.data.winner) {
           setWinner(state.data.winner);
-          setTimeout(() => onGameEnd(state.data.winner), 1500);
+          setTimeout(() => onGameEndRef.current(state.data.winner), 1500);
         }
       }
     };
 
     window.addEventListener('game_state', handleGameState as EventListener);
     return () => window.removeEventListener('game_state', handleGameState as EventListener);
-  }, [onGameEnd]);
+  }, []);
 
   useEffect(() => {
     const jumps = findAllJumps(board, isRedTurn);
@@ -120,7 +125,26 @@ const Checkers = ({ onGameEnd, isHost, sendGameState }: CheckersProps) => {
     return jumps;
   }
 
-  function checkWinner(board: Board): 'red' | 'black' | null {
+  function hasAnyMove(board: Board, isRedTurn: boolean): boolean {
+    for (let row = 0; row < 8; row++) {
+      for (let col = 0; col < 8; col++) {
+        const piece = board[row][col];
+        if (!piece || piece.isRed !== isRedTurn) continue;
+        if (findJumps(board, row, col).length > 0) return true;
+        const directions = piece.isKing ? [-1, 1] : [isRedTurn ? 1 : -1];
+        for (const dRow of directions) {
+          for (const dCol of [-1, 1]) {
+            const nr = row + dRow;
+            const nc = col + dCol;
+            if (nr >= 0 && nr < 8 && nc >= 0 && nc < 8 && !board[nr][nc]) return true;
+          }
+        }
+      }
+    }
+    return false;
+  }
+
+  function checkWinner(board: Board, nextTurnIsRed: boolean): 'red' | 'black' | null {
     let hasRed = false;
     let hasBlack = false;
     for (let row = 0; row < 8; row++) {
@@ -129,39 +153,64 @@ const Checkers = ({ onGameEnd, isHost, sendGameState }: CheckersProps) => {
         if (piece) {
           if (piece.isRed) hasRed = true;
           else hasBlack = true;
-          if (hasRed && hasBlack) return null;
         }
       }
     }
-    return hasRed ? 'red' : 'black';
+    if (!hasRed) return 'black';
+    if (!hasBlack) return 'red';
+    // Player whose turn it is has no legal moves — they lose
+    if (!hasAnyMove(board, nextTurnIsRed)) return nextTurnIsRed ? 'black' : 'red';
+    return null;
   }
 
   function executeMove(fromRow: number, fromCol: number, toRow: number, toCol: number) {
     const newBoard = board.map(r => [...r]);
     newBoard[toRow][toCol] = newBoard[fromRow][fromCol];
     newBoard[fromRow][fromCol] = null;
-    if (Math.abs(toRow - fromRow) === 2) {
+    const wasJump = Math.abs(toRow - fromRow) === 2;
+    if (wasJump) {
       const midRow = fromRow + Math.sign(toRow - fromRow);
       const midCol = fromCol + Math.sign(toCol - fromCol);
       newBoard[midRow][midCol] = null;
     }
-    if (newBoard[toRow][toCol] && (toRow === 0 || toRow === 7)) {
+    // Check crowning — if crowned, turn ends (no chain jump allowed)
+    const wasAlreadyKing = newBoard[toRow][toCol]!.isKing;
+    if (toRow === 0 || toRow === 7) {
       newBoard[toRow][toCol]!.isKing = true;
     }
-    const gameWinner = checkWinner(newBoard);
+    const wasCrowned = !wasAlreadyKing && (toRow === 0 || toRow === 7);
+
+    // Chain jumps are only allowed if the piece was NOT just crowned
+    const chainJumps = wasJump && !wasCrowned
+      ? findJumps(newBoard, toRow, toCol)
+      : [];
+
+    const nextTurnIsRed = chainJumps.length > 0 ? isRedTurn : !isRedTurn;
+    const gameWinner = checkWinner(newBoard, nextTurnIsRed);
     if (gameWinner) {
       setWinner(gameWinner);
-      setTimeout(() => onGameEnd(gameWinner), 1500);
+      setTimeout(() => onGameEndRef.current(gameWinner), 1500);
     }
-    setBoard(newBoard);
-    setIsRedTurn(!isRedTurn);
-    setValidMoves([]);
-    setDragStart(null);
-    setSelectedPiece(null);
-    sendGameState({
-      type: 'checkers',
-      data: { board: newBoard, isRedTurn: !isRedTurn, winner: gameWinner }
-    });
+
+    if (chainJumps.length > 0 && !gameWinner) {
+      // Keep same player's turn, force them to continue jumping with this piece
+      setBoard(newBoard);
+      setChainJumpPiece({ row: toRow, col: toCol });
+      setSelectedPiece({ row: toRow, col: toCol });
+      setValidMoves(chainJumps);
+      setDragStart(null);
+    } else {
+      setBoard(newBoard);
+      setIsRedTurn(!isRedTurn);
+      setValidMoves([]);
+      setDragStart(null);
+      setSelectedPiece(null);
+      setChainJumpPiece(null);
+      sendGameState({
+        type: 'checkers',
+        data: { board: newBoard, isRedTurn: !isRedTurn, winner: gameWinner }
+      });
+    }
   }
 
   // Click-to-move handler
@@ -174,6 +223,9 @@ const Checkers = ({ onGameEnd, isHost, sendGameState }: CheckersProps) => {
       executeMove(selectedPiece.row, selectedPiece.col, row, col);
       return;
     }
+
+    // During a chain jump, can only move the locked piece
+    if (chainJumpPiece) return;
 
     const piece = board[row][col];
     if (piece && piece.isRed === isRedTurn) {
@@ -188,6 +240,8 @@ const Checkers = ({ onGameEnd, isHost, sendGameState }: CheckersProps) => {
   // Drag handlers
   const handleDragStart = (row: number, col: number, e: React.DragEvent) => {
     if (!isMyTurn || winner || !board[row][col]) return;
+    // During a chain jump, only the locked piece can be dragged
+    if (chainJumpPiece && (chainJumpPiece.row !== row || chainJumpPiece.col !== col)) return;
     const piece = board[row][col];
     if (piece && piece.isRed === isRedTurn) {
       setDragStart({ row, col });
@@ -270,7 +324,8 @@ const Checkers = ({ onGameEnd, isHost, sendGameState }: CheckersProps) => {
                 const isDark = (rowIndex + colIndex) % 2 === 1;
                 const isValidMove = validMoves.some(m => m.row === rowIndex && m.col === colIndex);
                 const isSelected = selectedPiece?.row === rowIndex && selectedPiece?.col === colIndex;
-                const isMovable = isMyTurn && !winner && piece && piece.isRed === isRedTurn;
+                const isMovable = isMyTurn && !winner && piece && piece.isRed === isRedTurn &&
+                  (!chainJumpPiece || (chainJumpPiece.row === rowIndex && chainJumpPiece.col === colIndex));
 
                 return (
                   <div

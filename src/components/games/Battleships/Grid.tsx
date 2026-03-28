@@ -3,7 +3,7 @@ import { Target } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { CellEffect, ShipDamageEffect } from './Effects';
 import type { Board, Ship } from './types';
-import { canPlaceShipAt } from './gameLogic';
+import { canPlaceShipAt, BOARD_SIZE } from './gameLogic';
 
 interface GridProps {
   board: Board;
@@ -26,7 +26,7 @@ const Grid: React.FC<GridProps> = ({
   placedShips = [],
   onShipMove,
   isLocked = false,
-  showShips: _showShips = true
+  showShips = true
 }) => {
   const [hoverCell, setHoverCell] = React.useState<{ x: number; y: number } | null>(null);
   const [lastHit, setLastHit] = React.useState<{ x: number; y: number } | null>(null);
@@ -70,7 +70,7 @@ const Grid: React.FC<GridProps> = ({
       const previewX = isVertical ? x : x + i;
       const previewY = isVertical ? y + i : y;
       
-      if (previewX < 10 && previewY < 10) {
+      if (previewX < BOARD_SIZE && previewY < BOARD_SIZE) {
         cells.add(`${previewX}-${previewY}`);
       }
     }
@@ -136,7 +136,7 @@ const Grid: React.FC<GridProps> = ({
                     border border-slate-700
                     ${cell.isHit && cell.hasShip ? 'bg-red-500 border-red-600' : ''}
                     ${cell.isHit && !cell.hasShip ? 'bg-slate-600 border-slate-500' : ''}
-                    ${!cell.isHit && cell.hasShip ? 'bg-blue-500 border-blue-600' : ''}
+                    ${!cell.isHit && cell.hasShip && showShips ? 'bg-blue-500 border-blue-600' : ''}
                     ${!cell.isHit && !cell.hasShip ? 'bg-slate-700 border-slate-600' : ''}
                     ${isPreview ? (isValidPos ? 'bg-green-500/50' : 'bg-red-500/50') : ''}
                     ${isDraggable ? 'cursor-grab active:cursor-grabbing' : 'cursor-pointer'}
@@ -170,11 +170,11 @@ const Grid: React.FC<GridProps> = ({
                       <CellEffect type="preview" />
                     )}
 
-                    {ship && !cell.isHit && (
-                      <ShipDamageEffect 
-                        damage={ship.coordinates.filter(c => 
+                    {ship && !cell.isHit && showShips && (
+                      <ShipDamageEffect
+                        damage={ship.coordinates.filter(c =>
                           board[c.y][c.x].isHit
-                        ).length / ship.size} 
+                        ).length / ship.size}
                       />
                     )}
                   </AnimatePresence>

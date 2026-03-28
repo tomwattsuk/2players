@@ -19,7 +19,9 @@ export interface Ship {
 
 export interface GameState {
   type: 'battleships';
-  action: 'ready' | 'shot' | 'hit';
+  action: 'ready' | 'shot' | 'result';
   board?: Board;
   coordinate?: Coordinate;
+  hit?: boolean;
+  allSunk?: boolean;
 }
