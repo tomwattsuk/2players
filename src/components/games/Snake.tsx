@@ -21,7 +21,6 @@ export default function Snake({ onGameEnd, sendGameState, isHost }: SnakeProps) 
 
   const [snake, setSnake] = useState<Position[]>(isHost ? hostStart : guestStart);
   const [food, setFood] = useState<Position>(isHost ? { x: 8, y: 4 } : { x: 11, y: 15 });
-  const [direction, setDirection] = useState<Direction>(isHost ? 'RIGHT' : 'LEFT');
   const directionRef = useRef<Direction>(isHost ? 'RIGHT' : 'LEFT');
   const [score, setScore] = useState(0);
   const [gameOver, setGameOver] = useState(false);
@@ -113,7 +112,6 @@ export default function Snake({ onGameEnd, sendGameState, isHost }: SnakeProps) 
       // Prevent reversing direction
       const update = (next: Direction) => {
         directionRef.current = next;
-        setDirection(next);
       };
       switch (e.key) {
         case 'ArrowUp': if (directionRef.current !== 'DOWN') update('UP'); break;
