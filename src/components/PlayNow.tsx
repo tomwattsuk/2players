@@ -2,9 +2,11 @@ import { useGuestStore } from '../stores/useGuestStore';
 import GameArea from './GameArea';
 import CommunicationSetup from './CommunicationSetup';
 import { Video, Mic, MessageSquare, RefreshCw } from 'lucide-react';
+import { useCountry } from '../hooks/useCountry';
 
 const PlayNow: React.FC = () => {
   const { hasCompletedSetup, username, communicationType, resetGuest } = useGuestStore();
+  useCountry();
 
   const handleSetupComplete = () => {
     // The store is already updated by CommunicationSetup

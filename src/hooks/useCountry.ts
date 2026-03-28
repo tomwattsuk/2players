@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react';
+import { useEffect } from 'react';
+import { useGuestStore } from '../stores/useGuestStore';
 
 const COUNTRY_API_ENDPOINTS = [
   'https://ipapi.co/json/',
@@ -12,53 +13,41 @@ interface CountryResponse {
 }
 
 export function useCountry() {
-  const [country, setCountry] = useState<string>('');
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const { country, setCountry } = useGuestStore();
 
   useEffect(() => {
-    const fetchCountry = async () => {
-      setLoading(true);
-      setError(null);
+    if (country) return; // Already fetched and persisted
 
+    const fetchCountry = async () => {
       for (const endpoint of COUNTRY_API_ENDPOINTS) {
         try {
           const controller = new AbortController();
           const timeoutId = setTimeout(() => controller.abort(), 5000);
 
           const response = await fetch(endpoint, {
-            headers: {
-              'Accept': 'application/json'
-            },
+            headers: { 'Accept': 'application/json' },
             signal: controller.signal
           });
 
           clearTimeout(timeoutId);
 
-          if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-          }
+          if (!response.ok) continue;
 
           const data = await response.json() as CountryResponse;
           const countryName = data.country_name || data.country;
 
           if (countryName) {
             setCountry(countryName);
-            setLoading(false);
             return;
           }
-        } catch (error) {
-          console.warn(`Failed to fetch country from ${endpoint}:`, error);
+        } catch {
           continue;
         }
       }
-
-      setError('Could not determine location');
-      setLoading(false);
     };
 
     fetchCountry();
-  }, []);
+  }, [country, setCountry]);
 
-  return { country, loading, error };
+  return { country };
 }

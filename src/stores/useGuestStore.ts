@@ -8,9 +8,11 @@ interface GuestState {
   communicationType: CommunicationType | null;
   hasCompletedSetup: boolean;
   mediaPermissionsGranted: boolean;
+  country: string | null;
   setUsername: (username: string) => void;
   setCommunicationType: (type: CommunicationType) => void;
   setMediaPermissionsGranted: (granted: boolean) => void;
+  setCountry: (country: string) => void;
   completeSetup: () => void;
   resetGuest: () => void;
 }
@@ -31,12 +33,15 @@ export const useGuestStore = create<GuestState>()(
       communicationType: null,
       hasCompletedSetup: false,
       mediaPermissionsGranted: false,
+      country: null,
 
       setUsername: (username) => set({ username }),
 
       setCommunicationType: (type) => set({ communicationType: type }),
 
       setMediaPermissionsGranted: (granted) => set({ mediaPermissionsGranted: granted }),
+
+      setCountry: (country) => set({ country }),
 
       completeSetup: () => set({ hasCompletedSetup: true }),
 

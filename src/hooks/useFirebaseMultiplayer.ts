@@ -12,6 +12,7 @@ import {
   onDisconnect
 } from '../lib/firebase';
 import type { GameState } from '../types/game';
+import { useGuestStore } from '../stores/useGuestStore';
 
 interface ChatMessage {
   sender: string;
@@ -27,6 +28,10 @@ interface GameData {
   state: any;
   status: 'waiting' | 'playing' | 'finished';
   createdAt: number;
+  hostCountry?: string | null;
+  hostUsername?: string;
+  guestCountry?: string | null;
+  guestUsername?: string;
 }
 
 const MIN_MATCHMAKING_TIME = 2000;
@@ -41,6 +46,10 @@ export function useFirebaseMultiplayer() {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [opponentLeft, setOpponentLeft] = useState(false);
   const [onlinePlayers, setOnlinePlayers] = useState(0);
+  const [opponentCountry, setOpponentCountry] = useState<string | null>(null);
+  const [opponentUsername, setOpponentUsername] = useState<string | null>(null);
+
+  const { country, username } = useGuestStore();
 
   const playerId = useRef<string>(Math.random().toString(36).substring(7));
   const matchStartTime = useRef<number>(0);
@@ -129,12 +138,22 @@ export function useFirebaseMultiplayer() {
             // Remove them from waiting list
             await remove(ref(database, `matchmaking/${gameType}/${odId}`));
 
-            // Update game with our presence
+            // Update game with our presence and info
             const gameDataRef = ref(database, `games/${existingGameId}`);
             await update(gameDataRef, {
               guest: playerId.current,
+              guestCountry: country ?? null,
+              guestUsername: username,
               status: 'playing'
             });
+
+            // Read host's info for display
+            const hostSnapshot = await get(gameDataRef);
+            if (hostSnapshot.exists()) {
+              const hostData = hostSnapshot.val() as GameData;
+              setOpponentCountry(hostData.hostCountry ?? null);
+              setOpponentUsername(hostData.hostUsername ?? null);
+            }
 
             // Set up as guest
             setIsHost(false);
@@ -165,7 +184,9 @@ export function useFirebaseMultiplayer() {
         gameType,
         state: {},
         status: 'waiting',
-        createdAt: Date.now()
+        createdAt: Date.now(),
+        hostCountry: country ?? null,
+        hostUsername: username
       };
 
       await set(newGameRef, gameData);
@@ -218,6 +239,12 @@ export function useFirebaseMultiplayer() {
         if (waitingRef.current) {
           remove(waitingRef.current);
           waitingRef.current = null;
+        }
+
+        // Capture guest info for host display
+        if (gameData.guestCountry !== undefined || gameData.guestUsername) {
+          setOpponentCountry(gameData.guestCountry ?? null);
+          setOpponentUsername(gameData.guestUsername ?? null);
         }
 
         const elapsed = Date.now() - matchStartTime.current;
@@ -328,6 +355,8 @@ export function useFirebaseMultiplayer() {
     messages,
     opponentLeft,
     onlinePlayers,
+    opponentCountry,
+    opponentUsername,
     playerId: playerId.current,
     createGame,
     sendGameState,

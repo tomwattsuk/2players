@@ -10,7 +10,7 @@ interface CommunicationSetupProps {
 }
 
 export default function CommunicationSetup({ onComplete }: CommunicationSetupProps) {
-  const { username, setUsername, setCommunicationType, setMediaPermissionsGranted, completeSetup } = useGuestStore();
+  const { username, setUsername, setCommunicationType, setMediaPermissionsGranted, mediaPermissionsGranted, completeSetup } = useGuestStore();
   const [selectedType, setSelectedType] = useState<CommunicationType | null>(null);
   const [isCheckingPermissions, setIsCheckingPermissions] = useState(false);
   const [permissionError, setPermissionError] = useState<string | null>(null);
@@ -64,6 +64,23 @@ export default function CommunicationSetup({ onComplete }: CommunicationSetupPro
     setIsCheckingPermissions(true);
 
     try {
+      // If permissions were already granted, verify via the Permissions API before prompting again
+      if (mediaPermissionsGranted) {
+        try {
+          const camStatus = await navigator.permissions.query({ name: 'camera' as PermissionName });
+          if (camStatus.state === 'granted') {
+            setCommunicationType(selectedType);
+            completeSetup();
+            onComplete();
+            return;
+          }
+          // Permission was revoked — clear stored flag and fall through to prompt
+          setMediaPermissionsGranted(false);
+        } catch {
+          // Permissions API not supported — fall through to getUserMedia
+        }
+      }
+
       const hasPermission = await checkMediaPermissions(selectedType === 'video' ? 'video' : 'audio');
 
       if (hasPermission) {
