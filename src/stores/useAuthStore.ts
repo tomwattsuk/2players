@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import {
   auth, database,
-  ref, set as dbSet, get, push, update,
+  ref, set as dbSet, get as dbGet, push, update,
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
   signInWithPopup,
@@ -56,7 +56,7 @@ interface AuthState {
 
 async function fetchProfileFromDb(userId: string): Promise<Profile | null> {
   try {
-    const snapshot = await get(ref(database, `profiles/${userId}`));
+    const snapshot = await dbGet(ref(database,`profiles/${userId}`));
     if (!snapshot.exists()) return null;
     const data = snapshot.val();
     return {
@@ -280,7 +280,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
   listFriendRequests: async (userId: string) => {
     try {
-      const snapshot = await get(ref(database, `friendships/${userId}/incoming`));
+      const snapshot = await dbGet(ref(database,`friendships/${userId}/incoming`));
       if (!snapshot.exists()) return [];
       const requests: any[] = [];
       snapshot.forEach((child) => {
