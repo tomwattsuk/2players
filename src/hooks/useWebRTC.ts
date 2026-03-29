@@ -118,7 +118,7 @@ export function useWebRTC({ gameId, playerId, isHost, communicationType }: WebRT
         onValue(answerRef, async (snapshot) => {
           if (snapshot.exists() && pc.currentRemoteDescription === null) {
             const answer = snapshot.val();
-            await pc.setRemoteDescription(new RTCSessionDescription(answer));
+            await pc.setRemoteDescription(answer);
           }
         });
       } else {
@@ -127,7 +127,7 @@ export function useWebRTC({ gameId, playerId, isHost, communicationType }: WebRT
         onValue(offerRef, async (snapshot) => {
           if (snapshot.exists() && pc.currentRemoteDescription === null) {
             const offer = snapshot.val();
-            await pc.setRemoteDescription(new RTCSessionDescription(offer));
+            await pc.setRemoteDescription(offer);
 
             const answer = await pc.createAnswer();
             await pc.setLocalDescription(answer);

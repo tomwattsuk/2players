@@ -1,5 +1,5 @@
 export interface GameState {
-  type: 'tictactoe' | 'spaceshooter' | 'checkers';
+  type: 'tictactoe' | 'spaceshooter' | 'checkers' | 'battleships' | 'snake' | 'cooppong' | 'wordduel';
   data: any;
 }
 
